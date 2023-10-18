@@ -1,0 +1,5 @@
+3.1.10
+Kompiliert am 12.05.2023 mit Visual Studio 2008 Express C++ in einer Virtuellen Win10 x64 Maschine
+
+3.1.6
+Kompiliert am 09.11.2021 mit Visual Studio 2008 Express C++ in einer Virtuellen Win10 x64 Maschine

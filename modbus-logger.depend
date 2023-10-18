@@ -1,0 +1,28 @@
+# depslib dependency file v1.0
+1697658335 source:c:\users\vbox\desktop\modbus\modbus-logger\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdbool.h>
+	<time.h>
+	<windows.h>
+	<signal.h>
+	<dir.h>
+	<modbus.h>
+
+1670403614 c:\users\vbox\desktop\modbus\modbus-logger\lib\libmodbus_win32\modbus.h
+	<sys/param.h>
+	<stdint.h>
+	"stdint.h"
+	"modbus-version.h"
+	"modbus-rtu.h"
+	"modbus-tcp.h"
+
+1683884788 c:\users\vbox\desktop\modbus\modbus-logger\lib\libmodbus_win32\modbus-version.h
+
+1670403614 c:\users\vbox\desktop\modbus\modbus-logger\lib\libmodbus_win32\modbus-rtu.h
+	"modbus.h"
+
+1670403614 c:\users\vbox\desktop\modbus\modbus-logger\lib\libmodbus_win32\modbus-tcp.h
+	"modbus.h"
+	<winsock2.h>
+
