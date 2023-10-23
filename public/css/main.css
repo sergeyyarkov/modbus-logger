@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .btn {
+    @apply bg-blue-600 text-white py-2 px-3.5 font-semibold text-sm rounded-sm hover:opacity-70;
+  }
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+input,
+select {
+  @apply w-full border py-1 rounded-sm my-0.5 bg-white;
+}
+
+input {
+  @apply px-1.5;
+}
+
+hr {
+  @apply my-2;
+}
