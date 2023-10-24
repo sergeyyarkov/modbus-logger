@@ -52,7 +52,7 @@ apiRouter.patch("/app/config", validateBodyMiddleware(appConfigSchema), async (r
         [mb_tcp_ip, mb_tcp_port, payload.log_interval_ms],
       );
 
-      return res.status(200).send("Updated");
+      return res.status(200).send("Config Updated.");
     }
 
     /* Update RTU configuration */
@@ -71,7 +71,7 @@ apiRouter.patch("/app/config", validateBodyMiddleware(appConfigSchema), async (r
         `,
         [mb_rtu_path, mb_rtu_baud, mb_rtu_parity, mb_rtu_data_bits, mb_rtu_stop_bits, payload.log_interval_ms],
       );
-      return res.status(200).send("Updated.");
+      return res.status(200).send("Config updated.");
     }
 
     return res.status(400).send("Undefined Modbus connection type.");

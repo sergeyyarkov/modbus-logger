@@ -13,58 +13,152 @@
       <!-- Monitoring content -->
       <main x-bind:hidden="$store.app.currentPage !== 'monitoring'">
         <div>
-          <h1 class="text-3xl font-bold">Main page</h1>
+          <h1 class="text-3xl font-bold">Monitoring page</h1>
+          <button @click="$store.app.currentPage = 'configuration'" class="btn">Config</button>
         </div>
       </main>
 
       <!-- Configuration content -->
-      <main x-bind:hidden="$store.app.currentPage !== 'configuration'">
-        <div x-data="configAppModal" class="border rounded-sm p-4 max-w-2xl mx-auto">
+      <main x-data="configApp" x-bind:hidden="$store.app.currentPage !== 'configuration'">
+        <div class="border rounded-sm p-4 max-w-2xl mx-auto">
           <h2 class="text-2xl font-bold">Setup configuration</h2>
           <p class="text-gray-700 italic">
             Fill in the required configuration settings to connect to the Modbus network.
           </p>
           <hr />
-          <form @submit.prevent="configurateApp()" class="flex flex-col" action="#">
+          <div>
+            <span>app config state:</span>
+            <pre x-text="JSON.stringify($store.app.config, undefined, 2)"></pre>
+          </div>
+          <form @submit.prevent="configurateApp" action="#">
             <div>
-              <label class="block" for="conn_type">Network type</label>
-              <select name="conn_type" id="conn_type">
-                <option value="TCP">TCP</option>
-                <option value="RTU">RTU</option>
-              </select>
-
               <div>
-                <label>IP</label>
-                <input placeholder="e.g 127.0.0.1" type="text" />
-
-                <label>Port</label>
-                <input placeholder="e.g 502" type="text" />
+                <label class="block" for="connection_type">Network type</label>
+                <select
+                  x-model="$store.app.config.mb_connection_type"
+                  name="mb_connection_type"
+                  id="connection_type"
+                  required
+                >
+                  <option value="TCP">TCP</option>
+                  <option value="RTU">RTU</option>
+                </select>
               </div>
 
-              <div>
-                <label>Path</label>
-                <input placeholder="e.g  COM1" type="text" />
+              <div x-show="$store.app.config.mb_connection_type === 'TCP'" class="flex flex-col space-y-3">
+                <div>
+                  <label for="tcp_ip">IP</label>
+                  <input
+                    x-model="$store.app.config.mb_tcp_ip"
+                    id="tcp_ip"
+                    name="tcp_ip"
+                    placeholder="e.g 127.0.0.1"
+                    type="text"
+                    x-bind:required="$store.app.config.mb_connection_type === 'TCP'"
+                  />
+                </div>
 
-                <label>Baud</label>
-                <input placeholder="e.g  9600" type="text" />
+                <div>
+                  <label for="rtu_port">Port</label>
+                  <input
+                    x-model.number="$store.app.config.mb_tcp_port"
+                    id="rtu_port"
+                    name="mb_rtu_port"
+                    placeholder="e.g 502"
+                    type="number"
+                    x-bind:required="$store.app.config.mb_connection_type === 'TCP'"
+                  />
+                </div>
+              </div>
 
-                <label>Parity</label>
-                <select name="parity" id="conn_type">
-                  <option value="even">even</option>
-                  <option value="odd">odd</option>
-                  <option value="none">none</option>
-                </select>
+              <div x-show="$store.app.config.mb_connection_type === 'RTU'" class="flex flex-col space-y-3">
+                <div>
+                  <label for="rtu_path">Path</label>
+                  <input
+                    id="rtu_path"
+                    name="mb_rtu_path"
+                    placeholder="e.g  COM1"
+                    type="text"
+                    x-model="$store.app.config.mb_rtu_path"
+                    x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
+                  />
+                </div>
 
-                <label>Data bits</label>
-                <input placeholder="e.g  8" type="text" />
+                <div>
+                  <label for="rtu_baud">Baud</label>
+                  <select
+                    name="mb_rtu_baud"
+                    id="rtu_baud"
+                    x-model.number="$store.app.config.mb_rtu_baud"
+                    x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
+                  >
+                    <option value="115200">115200</option>
+                    <option value="57600">57600</option>
+                    <option value="38400">38400</option>
+                    <option value="19200">19200</option>
+                    <option selected value="9600">9600</option>
+                    <option value="1200">1200</option>
+                  </select>
+                </div>
 
-                <label>Stop bits</label>
-                <input placeholder="e.g  1" type="text" />
+                <div>
+                  <label for="rtu_parity">Parity</label>
+                  <select
+                    name="mb_rtu_parity"
+                    id="rtu_parity"
+                    x-model.number="$store.app.config.mb_rtu_parity"
+                    x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
+                  >
+                    <option value="even">even</option>
+                    <option value="odd">odd</option>
+                    <option value="none">none</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="rtu_data_bits">Data bits</label>
+                  <select
+                    name="mb_rtu_data_bits"
+                    id="rtu_data_bits"
+                    x-model.number="$store.app.config.mb_rtu_data_bits"
+                    x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
+                  >
+                    <option selected value="8">8</option>
+                    <option value="7">7</option>
+                    <option value="6">6</option>
+                    <option value="5">5</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="rtu_stop_bits">Stop bits</label>
+                  <select
+                    name="mb_rtu_stop_bits"
+                    id="rtu_stop_bits"
+                    x-model.number="$store.app.config.mb_rtu_stop_bits"
+                    x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
+                  >
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div class="mt-3 ml-auto">
-              <button class="btn" type="submit">Connect</button>
+            <div class="mt-2">
+              <label for="rtu_path">Log Interval (ms)</label>
+              <input
+                id="log_interval_ms"
+                name="log_interval_ms"
+                type="number"
+                min="1000"
+                x-model.number="$store.app.config.log_interval_ms"
+                required
+              />
+            </div>
+
+            <div class="mt-3">
+              <button class="btn ml-auto" type="submit">Save</button>
             </div>
           </form>
         </div>
