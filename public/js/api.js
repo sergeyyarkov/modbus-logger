@@ -1,5 +1,15 @@
 const urlPrefix = "/api";
 
+/**
+ * Response handler
+ * @param {Response} response
+ */
+async function handle(response) {
+  const data = await response.json();
+  if (!response.ok) return Promise.reject((data && data.message) || response.statusText);
+  return data;
+}
+
 export default {
   async patch(path, data) {
     const response = await fetch(`${urlPrefix}${path}`, {
@@ -9,7 +19,7 @@ export default {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    return response;
+    return handle(response);
   },
 
   async post(path, data) {
@@ -20,6 +30,13 @@ export default {
         "Content-Type": "application/x-www-form-urlencoded",
       },
     });
-    return response;
+    return await handle(response);
+  },
+
+  async get(path) {
+    const response = await fetch(`${urlPrefix}${path}`, {
+      method: "GET",
+    });
+    return await handle(response);
   },
 };

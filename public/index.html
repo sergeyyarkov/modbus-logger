@@ -26,11 +26,11 @@
             Fill in the required configuration settings to connect to the Modbus network.
           </p>
           <hr />
-          <div>
+          <!-- <div>
             <span>app config state:</span>
             <pre x-text="JSON.stringify($store.app.config, undefined, 2)"></pre>
-          </div>
-          <form @submit.prevent="configurateApp" action="#">
+          </div> -->
+          <form @submit.prevent="configurateApp()" action="#">
             <div>
               <div>
                 <label class="block" for="connection_type">Network type</label>
@@ -157,8 +157,20 @@
               />
             </div>
 
-            <div class="mt-3">
-              <button class="btn ml-auto" type="submit">Save</button>
+            <div class="mt-3 flex flex-row justify-between items-center">
+              <div>
+                <button
+                  x-bind:disabled="isLoading"
+                  x-bind:class="isLoading && 'opacity-70'"
+                  class="btn ml-auto"
+                  type="submit"
+                >
+                  Save
+                </button>
+              </div>
+              <div>
+                <span class="text-red-600" x-text="errorMessage">Error while connection to Modbus network</span>
+              </div>
             </div>
           </form>
         </div>

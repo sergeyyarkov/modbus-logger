@@ -24,3 +24,8 @@ input {
 hr {
   @apply my-2;
 }
+
+button:disabled {
+  cursor: not-allowed;
+  pointer-events: all !important;
+}
