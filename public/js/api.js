@@ -6,7 +6,7 @@ const urlPrefix = "/api";
  */
 async function handle(response) {
   const data = await response.json();
-  if (!response.ok) return Promise.reject((data && data.message) || response.statusText);
+  if (!response.ok) return Promise.reject(data.error || response.statusText);
   return data;
 }
 

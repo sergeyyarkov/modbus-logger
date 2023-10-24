@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
+    "pino-pretty": "^10.2.3",
     "tailwindcss": "^3.3.3"
   },
   "imports": {

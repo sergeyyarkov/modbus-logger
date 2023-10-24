@@ -88,7 +88,7 @@ document.addEventListener("alpine:init", async () => {
           await api.post("/modbus/connect");
           this.$store.app.currentPage = "monitoring";
         } catch (error) {
-          this.errorMessage = "Modbus connection error.";
+          this.errorMessage = `Modbus connection error: ${error.message}`;
         }
       }
 

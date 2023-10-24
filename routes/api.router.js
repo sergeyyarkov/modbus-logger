@@ -88,7 +88,7 @@ apiRouter.get("/app/is_configured", async (req, res, next) => {
     const config = await appService.getConfig(db);
     let is_configured = false;
 
-    if (!config) return res.status(200).json({ is_configured });
+    if (!config) return res.status(200).json({ is_configured: false });
 
     const isValuesExists = (colPrefix) => {
       const keys = Object.keys(config).filter((k) => k.includes(colPrefix));
