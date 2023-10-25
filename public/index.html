@@ -5,34 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Modbus Logger App</title>
     <link rel="stylesheet" href="/css/dist.css" />
+    <script defer src="/js/dygraphs.min.js"></script>
     <script defer type="module" src="/js/app.js"></script>
   </head>
-  <body class="m-2">
+  <body>
     <!-- <div class="border p-4" x-data>
       <span>app state:</span>
       <pre x-text="JSON.stringify($store.app, undefined, 2)"></pre>
     </div> -->
-    
+
     <!-- Root element -->
-    <div x-data x-cloak class="mx-auto max-w-6xl m-2 py-8">
+    <div x-data x-cloak class="mx-auto max-w-5xl flex flex-col h-screen">
       <!-- Monitoring content -->
-      <main x-bind:hidden="$store.app.currentPage !== 'monitoring'">
+      <main class="flex-1" x-bind:hidden="$store.app.currentPage !== 'monitoring'">
         <!-- <div>
           <h1 class="text-3xl font-bold">Monitoring page</h1>
           <button @click="$store.app.setPage('configuration')" class="btn">Config</button>
         </div> -->
-        <div class="flex flex-auto flex-row h-screen space-x-2">
-          <div class="border-r w-64 p-4">
-            <div class="w-full border px-2.5 py-1.5 rounded-sm">
-              <h2 class="text-sm">Modbus slave #1</h2>
+        <div class="flex h-full flex-row space-x-2">
+          <div class="border-r min-w-[256px] p-2.5 pt-5">
+            <div class="flex flex-col space-y-2">
+              <span class="italic text-sm">Devices list:</span>
+              <div class="flex flex-col max-h-[520px] overflow-y-auto space-y-2">
+                <div class="w-full select-none border px-2.5 py-3 rounded-sm hover:bg-gray-50 cursor-pointer">
+                  <h2 class="text-md font-bold">Device #1</h2>
+                </div>
+                <div class="w-full select-none border px-2.5 py-3 rounded-sm hover:bg-gray-50 cursor-pointer">
+                  <h2 class="text-md font-bold">Device #2</h2>
+                </div>
+                <div class="w-full select-none border px-2.5 py-3 rounded-sm hover:bg-gray-50 cursor-pointer">
+                  <h2 class="text-md font-bold">Device #3</h2>
+                </div>
+              </div>
+              <div class="w-full text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer">
+                <span class="text-5xl text-gray-400 select-none">+</span>
+              </div>
             </div>
+            <hr class="my-4" />
+            <div><span class="italic text-sm">Connection:</span><br /></div>
           </div>
-          <div class="w-full">
-            graph...
+          <div class="flex-auto">
+            <div class="pt-5 border-b">
+              <h2 class="font-bold text-3xl my-2">Device #1</h2>
+            </div>
+            <div class="mt-4">
+              <div id="div_g" style="width: 720px; height: 300px"></div>
+            </div>
+            <hr class="mt-10" />
           </div>
-          <div class="border-l w-48 p-4">
-
-          </div>
+          <!-- <div class="border-l"></div> -->
         </div>
       </main>
 
@@ -222,8 +243,7 @@
           <p>Refresh page to try again.</p>
           <br />
           <div class="border p-4">
-            <pre x-text="JSON.stringify($store.app.error, undefined, 2)" x-show="$store.app.error">
-            </pre>
+            <pre x-text="JSON.stringify($store.app.error, undefined, 2)" x-show="$store.app.error"></pre>
           </div>
         </div>
       </main>

@@ -1,9 +1,33 @@
 // @ts-nocheck
 import "./alpine.js";
 import api from "./api.js";
-import * as utils from './utils/index.js'
+import * as utils from "./utils/index.js";
 
-const pages = ['loading', 'monitoring', 'configuration', '404']
+const pages = ["loading", "monitoring", "configuration", "404"];
+
+var data = [];
+var t = new Date();
+
+for (var i = 10; i >= 0; i--) {
+  var x = new Date(t.getTime() - i * 1000);
+  data.push([x, Math.random()]);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  var g = new Dygraph(document.getElementById("div_g"), data, {
+    drawPoints: false,
+    showRoller: false,
+    // valueRange: [0.0, 6.8],
+    labels: ["Time", "Random"],
+  });
+
+  window.intervalId = setInterval(function () {
+    var x = new Date(); // current time
+    var y = Math.random();
+    data.push([x, y]);
+    g.updateOptions({ file: data });
+  }, 1000);
+});
 
 document.addEventListener("alpine:init", async () => {
   Alpine.store("app", {
@@ -31,7 +55,7 @@ document.addEventListener("alpine:init", async () => {
 
         if (config) this.config = config;
         if (is_configured) {
-          const devices = await api.get('/modbus/devices');
+          const devices = await api.get("/modbus/devices");
           this.devices = devices;
           this.currentPage = "monitoring";
           return;
@@ -39,19 +63,19 @@ document.addEventListener("alpine:init", async () => {
 
         this.currentPage = "configuration";
       } catch (error) {
-        this.currentPage = 'error'
+        this.currentPage = "error";
         this.error = error;
       }
     },
 
     setPage(page) {
       if (!pages.includes(page)) {
-        this.currentPage = '404'
+        this.currentPage = "404";
         return;
       }
 
       this.currentPage = page;
-    }
+    },
   });
 
   Alpine.data("configAppPage", () => ({
@@ -64,11 +88,17 @@ document.addEventListener("alpine:init", async () => {
         this.errorMessage = "";
         const data = { ...this.$store.app.config };
         const body = {
-          RTU: utils.objKeysExclude(data, ['mb_tcp_ip', 'mb_tcp_port']),
-          TCP: utils.objKeysExclude(data, ['mb_rtu_path', 'mb_rtu_baud', 'mb_rtu_parity', 'mb_rtu_data_bits', 'mb_rtu_stop_bits'])
-        }
+          RTU: utils.objKeysExclude(data, ["mb_tcp_ip", "mb_tcp_port"]),
+          TCP: utils.objKeysExclude(data, [
+            "mb_rtu_path",
+            "mb_rtu_baud",
+            "mb_rtu_parity",
+            "mb_rtu_data_bits",
+            "mb_rtu_stop_bits",
+          ]),
+        };
         await api.patch("/app/config", body[data.mb_connection_type]);
-        await api.post("/modbus/connect");  
+        await api.post("/modbus/connect");
         this.$store.app.currentPage = "monitoring";
       } catch (error) {
         this.errorMessage = `${error.message}`;

@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS "app_config" (
 CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"id" INTEGER CHECK (id >= 1 AND id <= 255),
 	"name" VARCHAR(256) NOT NULL,
-	"display_addr" INTEGER CHECK(display_addr >= 0 AND display_addr <= 65534),
-	-- "display_val_format" INTEGER CHECK IN(16, 32) NOT NULL,
+	"display_reg_addr" INTEGER CHECK(display_reg_addr >= 0 AND display_reg_addr <= 65534),
+	"display_reg_format" INTEGER CHECK(display_reg_format IN(16, 32)),
 	"is_logging" BOOLEAN NOT NULL,
 	PRIMARY KEY("id")
 );
