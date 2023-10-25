@@ -13,7 +13,9 @@ export function validateBodyMiddleware(schema) {
       await schema.validate(req.body);
       next();
     } catch (error) {
-      return res.status(400).send(error.message);
+      return res.status(400).json({ error: {
+        message: error.errors[0]
+      }});
     }
   };
 }

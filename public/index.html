@@ -8,28 +8,42 @@
     <script defer type="module" src="/js/app.js"></script>
   </head>
   <body class="m-2">
+    <!-- <div class="border p-4" x-data>
+      <span>app state:</span>
+      <pre x-text="JSON.stringify($store.app, undefined, 2)"></pre>
+    </div> -->
+    
     <!-- Root element -->
     <div x-data x-cloak class="mx-auto max-w-6xl m-2 py-8">
       <!-- Monitoring content -->
       <main x-bind:hidden="$store.app.currentPage !== 'monitoring'">
-        <div>
+        <!-- <div>
           <h1 class="text-3xl font-bold">Monitoring page</h1>
-          <button @click="$store.app.currentPage = 'configuration'" class="btn">Config</button>
+          <button @click="$store.app.setPage('configuration')" class="btn">Config</button>
+        </div> -->
+        <div class="flex flex-auto flex-row h-screen space-x-2">
+          <div class="border-r w-64 p-4">
+            <div class="w-full border px-2.5 py-1.5 rounded-sm">
+              <h2 class="text-sm">Modbus slave #1</h2>
+            </div>
+          </div>
+          <div class="w-full">
+            graph...
+          </div>
+          <div class="border-l w-48 p-4">
+
+          </div>
         </div>
       </main>
 
       <!-- Configuration content -->
-      <main x-data="configApp" x-bind:hidden="$store.app.currentPage !== 'configuration'">
+      <main x-data="configAppPage" x-bind:hidden="$store.app.currentPage !== 'configuration'">
         <div class="border rounded-sm p-4 max-w-2xl mx-auto">
           <h2 class="text-2xl font-bold">Setup configuration</h2>
           <p class="text-gray-700 italic">
             Fill in the required configuration settings to connect to the Modbus network.
           </p>
           <hr />
-          <!-- <div>
-            <span>app config state:</span>
-            <pre x-text="JSON.stringify($store.app.config, undefined, 2)"></pre>
-          </div> -->
           <form @submit.prevent="configurateApp()" action="#">
             <div>
               <div>
@@ -96,7 +110,7 @@
                     <option value="57600">57600</option>
                     <option value="38400">38400</option>
                     <option value="19200">19200</option>
-                    <option selected value="9600">9600</option>
+                    <option value="9600">9600</option>
                     <option value="1200">1200</option>
                   </select>
                 </div>
@@ -123,7 +137,7 @@
                     x-model.number="$store.app.config.mb_rtu_data_bits"
                     x-bind:required="$store.app.config.mb_connection_type === 'RTU'"
                   >
-                    <option selected value="8">8</option>
+                    <option value="8">8</option>
                     <option value="7">7</option>
                     <option value="6">6</option>
                     <option value="5">5</option>
@@ -158,7 +172,7 @@
             </div>
 
             <div class="mt-3 flex flex-row justify-between items-center">
-              <div>
+              <div class="mr-1">
                 <button
                   x-bind:disabled="isLoading"
                   x-bind:class="isLoading && 'opacity-70'"
@@ -169,7 +183,7 @@
                 </button>
               </div>
               <div>
-                <span class="text-red-600" x-text="errorMessage">Error while connection to Modbus network</span>
+                <span class="text-red-600" x-text="errorMessage"></span>
               </div>
             </div>
           </form>
@@ -198,6 +212,26 @@
             </svg>
           </div>
           <p class="mt-4">Loading...</p>
+        </div>
+      </main>
+
+      <!-- Error content -->
+      <main x-bind:hidden="$store.app.currentPage !== 'error'">
+        <div>
+          <h1 class="text-2xl font-bold">Something went wrong.</h1>
+          <p>Refresh page to try again.</p>
+          <br />
+          <div class="border p-4">
+            <pre x-text="JSON.stringify($store.app.error, undefined, 2)" x-show="$store.app.error">
+            </pre>
+          </div>
+        </div>
+      </main>
+
+      <!-- 404 content -->
+      <main x-bind:hidden="$store.app.currentPage !== '404'">
+        <div>
+          <h1 class="text 2xl font-bold">Page not found</h1>
         </div>
       </main>
     </div>

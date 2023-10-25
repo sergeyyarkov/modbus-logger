@@ -1,13 +1,13 @@
 // @ts-nocheck
 import "./alpine.js";
 import api from "./api.js";
+import * as utils from './utils/index.js'
+
+const pages = ['loading', 'monitoring', 'configuration', '404']
 
 document.addEventListener("alpine:init", async () => {
   Alpine.store("app", {
     is_configured: false,
-    /**
-     * Default configuration
-     */
     config: {
       mb_connection_type: "TCP",
       mb_tcp_ip: "127.0.0.1",
@@ -20,6 +20,8 @@ document.addEventListener("alpine:init", async () => {
       log_interval_ms: 1000,
     },
     currentPage: "loading",
+    error: null,
+    devices: [],
     async init() {
       try {
         const { config } = await api.get("/app/config");
@@ -29,70 +31,50 @@ document.addEventListener("alpine:init", async () => {
 
         if (config) this.config = config;
         if (is_configured) {
+          const devices = await api.get('/modbus/devices');
+          this.devices = devices;
           this.currentPage = "monitoring";
           return;
         }
 
         this.currentPage = "configuration";
       } catch (error) {
-        throw new Error("Error on initializing app.");
+        this.currentPage = 'error'
+        this.error = error;
       }
     },
+
+    setPage(page) {
+      if (!pages.includes(page)) {
+        this.currentPage = '404'
+        return;
+      }
+
+      this.currentPage = page;
+    }
   });
 
-  Alpine.data("configApp", () => ({
+  Alpine.data("configAppPage", () => ({
     selectedConnectionType: "TCP",
     isLoading: false,
     errorMessage: "",
     async configurateApp() {
-      this.isLoading = true;
-      this.errorMessage = "";
-      let data = {};
-      const {
-        mb_connection_type,
-        mb_tcp_ip,
-        mb_tcp_port,
-        mb_rtu_path,
-        mb_rtu_baud,
-        mb_rtu_parity,
-        mb_rtu_data_bits,
-        mb_rtu_stop_bits,
-        log_interval_ms,
-      } = this.$store.app.config;
-
-      if (mb_connection_type === "TCP") {
-        data = {
-          mb_connection_type,
-          mb_tcp_ip,
-          mb_tcp_port,
-          log_interval_ms,
-        };
-      }
-
-      if (mb_connection_type === "RTU") {
-        data = {
-          mb_connection_type,
-          mb_rtu_path,
-          mb_rtu_parity,
-          mb_rtu_data_bits,
-          mb_rtu_stop_bits,
-          mb_rtu_baud,
-          log_interval_ms,
-        };
-      }
-
-      if (data) {
-        await api.patch("/app/config", data);
-
-        try {
-          await api.post("/modbus/connect");
-          this.$store.app.currentPage = "monitoring";
-        } catch (error) {
-          this.errorMessage = `Modbus connection error: ${error.message}`;
+      try {
+        this.isLoading = true;
+        this.errorMessage = "";
+        const data = { ...this.$store.app.config };
+        const body = {
+          RTU: utils.objKeysExclude(data, ['mb_tcp_ip', 'mb_tcp_port']),
+          TCP: utils.objKeysExclude(data, ['mb_rtu_path', 'mb_rtu_baud', 'mb_rtu_parity', 'mb_rtu_data_bits', 'mb_rtu_stop_bits'])
         }
+        await api.patch("/app/config", body[data.mb_connection_type]);
+        await api.post("/modbus/connect");  
+        this.$store.app.currentPage = "monitoring";
+      } catch (error) {
+        this.errorMessage = `${error.message}`;
+      } finally {
+        this.isLoading = false;
       }
-
-      this.isLoading = false;
     },
   }));
 });

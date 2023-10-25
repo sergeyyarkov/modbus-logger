@@ -9,3 +9,10 @@ export type AppConfig = {
   mb_rtu_stop_bits: number | null;
   log_interval_ms: number;
 };
+
+export type ModbusSlave = {
+  id: number;
+  name: string;
+  display_addr: number;
+  is_logging: boolean;
+}

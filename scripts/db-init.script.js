@@ -1,7 +1,12 @@
-import { runQueryFromFile } from "#root/utils/database.util.js";
+import db from '#root/config/database.config.js'
 
 async function run() {
-  await runQueryFromFile("sql/init-schema.sql");
+  try {
+    await db.migrate({ force: false })
+    console.log('Database initialized.');
+  } catch (error) {
+    throw error;
+  }
 }
 
 run();
