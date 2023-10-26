@@ -39,6 +39,21 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
 );
 
+-- CREATE TABLE IF NOT EXISTS "modbus_log" (
+-- 	"id" INTEGER,
+-- 	"date" DATE NOT NULL,
+-- 	"slave_id" INTEGER NOT NULL,
+	
+-- 	-- JSON Format: 
+-- 	-- {
+-- 	-- 	graph: [{ reg_addr: 1 value: 4 }],
+-- 	-- 	display_values: [{ reg_addr: 1, name: "CV1" }]
+-- 	-- }
+-- 	"data" TEXT NOT NULL,
+-- 	PRIMARY KEY("id"),
+-- 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
+-- )
+
 INSERT INTO "modbus_slaves" (
 	"id", "name", "g_display_reg_addr", "g_display_reg_format", "g_y_label", "is_logging"
 ) VALUES

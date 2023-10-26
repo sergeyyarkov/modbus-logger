@@ -4,13 +4,7 @@ import api from "./api.js";
 import * as utils from "./utils/index.js";
 
 const pages = ["loading", "monitoring", "configuration", "404"];
-let graphData = [];
-const t = new Date();
-
-for (var i = 10; i >= 0; i--) {
-  var x = new Date(t.getTime() - i * 1000);
-  graphData.push([x, Math.random()]);
-}
+let graphData = [[0, 0]];
 
 document.addEventListener("alpine:init", async () => {
   Alpine.store("app", {
@@ -31,7 +25,7 @@ document.addEventListener("alpine:init", async () => {
     error: null,
     async init() {
       try {
-        const connStatusEventSource = new EventSource('/api/modbus/status');
+        const connStatusEventSource = new EventSource("/api/modbus/status");
         const { config } = await api.get("/app/config");
         const { is_configured } = await api.get("/app/is_configured");
 
@@ -39,7 +33,7 @@ document.addEventListener("alpine:init", async () => {
 
         if (config) this.config = config;
         if (is_configured) {
-          connStatusEventSource.onmessage = (e) => (this.is_opened = e.data === 'true');
+          connStatusEventSource.onmessage = (e) => (this.is_opened = e.data === "true");
           await utils.wait(500);
           this.currentPage = "monitoring";
           return;
@@ -63,28 +57,28 @@ document.addEventListener("alpine:init", async () => {
     },
   });
 
-  Alpine.data('monitoringPage', () => ({
+  Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
     devices: [],
     async init() {
       try {
-        this.$store.app.currentPage = 'loading'
+        this.$store.app.currentPage = "loading";
         var g = new Dygraph(document.getElementById("div_g"), graphData, {
           drawPoints: false,
           showRoller: false,
-          ylabel: 'Y Label',
+          ylabel: "Y Label",
           valueRange: [0.0, 1.8],
           //labels: ["Time", "Random"],
         });
-        this.devices = await api.get('/modbus/devices');
+        this.devices = await api.get("/modbus/devices");
         window.intervalId = setInterval(() => {
           graphData.push([new Date(), Math.random()]);
-          g.updateOptions({ file: graphData })
-        }, 500)
+          g.updateOptions({ file: graphData });
+        }, 500);
       } catch (error) {
         this.$store.app.error = error;
       } finally {
-        this.$store.app.currentPage = 'monitoring'
+        this.$store.app.currentPage = "monitoring";
       }
     },
     selectDevice(device) {
@@ -95,13 +89,13 @@ document.addEventListener("alpine:init", async () => {
     async removeDevice(id, ctx) {
       try {
         //await api.post('/modbus/remove_device', { id });
-        this.devices = _this.devices.filter(d => d.id != id);
+        this.devices = _this.devices.filter((d) => d.id != id);
         this.selectedDevice = null;
       } catch (error) {
-        console.error('Error while removing device.', error)
+        console.error("Error while removing device.", error);
       }
-    }
-  }))
+    },
+  }));
 
   Alpine.data("configAppPage", () => ({
     selectedConnectionType: "TCP",
@@ -137,12 +131,12 @@ document.addEventListener("alpine:init", async () => {
   Alpine.store("confirmDialog", {
     isOpen: false,
     labels: {
-      title: 'Confirm dialog',
-      body: 'Are you sure you want to perform this action?',
+      title: "Confirm dialog",
+      body: "Are you sure you want to perform this action?",
     },
     cb: {
       fn: null,
-      args: []
+      args: [],
     },
     open(title, body, cb, ...args) {
       this.isOpen = true;
@@ -156,6 +150,6 @@ document.addEventListener("alpine:init", async () => {
     },
     close() {
       this.isOpen = false;
-    }
-  })
+    },
+  });
 });
