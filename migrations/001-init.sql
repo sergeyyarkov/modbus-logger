@@ -21,8 +21,11 @@ CREATE TABLE IF NOT EXISTS "app_config" (
 CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"id" INTEGER CHECK (id >= 1 AND id <= 255),
 	"name" VARCHAR(256) NOT NULL,
-	"display_reg_addr" INTEGER CHECK(display_reg_addr >= 0 AND display_reg_addr <= 65534),
-	"display_reg_format" INTEGER CHECK(display_reg_format IN(16, 32)),
+	-- Holding register
+	"g_display_reg_addr" INTEGER CHECK(g_display_reg_addr >= 0 AND g_display_reg_addr <= 65534), 
+	-- Use 1 or 2 bytes
+	"g_display_reg_format" INTEGER CHECK(g_display_reg_format IN(16, 32)),
+	"g_y_label" VARCHAR(40),
 	"is_logging" BOOLEAN NOT NULL,
 	PRIMARY KEY("id")
 );
@@ -35,6 +38,14 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 	PRIMARY KEY("id"),
 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
 );
+
+INSERT INTO "modbus_slaves" (
+	"id", "name", "g_display_reg_addr", "g_display_reg_format", "g_y_label", "is_logging"
+) VALUES
+	(1, "Device #1", 1, 16, "Label 1", 1),
+	(2, "Device #2", 2, 32, "Label 2", 1),
+	(3, "Device #3", 8, 16, "Label 3", 0),
+	(4, "Device #4", NULL, NULL, "Label 4", 0);
 
 --------------------------------------------------------------------------------
 -- Down

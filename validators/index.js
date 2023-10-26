@@ -16,3 +16,5 @@ export const appConfigSchema = object({
   mb_rtu_stop_bits: number().oneOf([1, 2]).when("mb_connection_type", requiredIfConnTypeEquals("RTU")),
   log_interval_ms: number().min(1000).required(),
 });
+
+export const removeModbusDeviceSchema = object({ id: number().max(255).min(1).required() }) 

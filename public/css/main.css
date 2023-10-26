@@ -12,6 +12,14 @@
   display: none !important;
 }
 
+.backdrop {
+  @apply fixed top-0 left-0 bottom-0 right-0 bg-[rgba(0,0,0,.15)] px-2.5 overflow-y-auto;
+}
+
+a {
+  @apply underline text-blue-600;
+}
+
 input,
 select {
   @apply w-full border py-1 rounded-sm my-0.5 bg-white;

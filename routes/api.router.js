@@ -3,7 +3,7 @@ import express from "express";
 /**
  * Validators
  */
-import { appConfigSchema } from "#root/validators/index.js";
+import { appConfigSchema, removeModbusDeviceSchema } from "#root/validators/index.js";
 
 /**
  * Controllers
@@ -22,8 +22,10 @@ apiRouter.patch("/app/config", validateBodyMiddleware(appConfigSchema), appContr
 apiRouter.get("/app/is_configured", appController.isConfigured);
 
 apiRouter.get("/modbus/devices", modbusController.list);
+apiRouter.post('/modbus/remove_device', validateBodyMiddleware(removeModbusDeviceSchema), modbusController.removeSlaveDevice);
 apiRouter.post("/modbus/connect", modbusController.connect);
 apiRouter.post("/modbus/close", modbusController.close);
 apiRouter.get("/modbus/data_stream", modbusController.streamData);
+apiRouter.get('/modbus/status', modbusController.status);
 
 export { apiRouter };

@@ -85,7 +85,16 @@ export const modbusController = {
    * @param {import('express').Response} res 
    * @param {import('express').NextFunction} next 
    */
-  async removeSlaveDevice(req, res, next) {},
+  async removeSlaveDevice(req, res, next) {
+    try {
+      const device = await db.get(`SELECT id FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
+      if (!device) return res.status(404).json({ message: 'Device not found.' });
+      await db.run(`DELETE FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
+      return res.status(200).json({ message: 'Device removed.' });
+    } catch (error) {
+      next(error);
+    }
+  },
 
   /**
    * Create display value for modbus slave device
@@ -112,7 +121,27 @@ export const modbusController = {
   async getLatestLog(req, res, next) {},
 
   /**
-   * Create event stream for sending data from modbus device
+   * Creates event stream aboud modbus connection status
+   * @param {import('express').Request} req 
+   * @param {import('express').Response} res 
+   * @param {import('express').NextFunction} next 
+   */
+  async status(req, res, next) {
+    try {
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Connection", "keep-alive");
+      let intervalId = setInterval(() => {
+        res.write(`event: message\ndata: ${JSON.stringify(modbusClient.isOpen)}\n\n`);
+      }, 500);
+      req.on('close', () => clearInterval(intervalId));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Creates event stream for sending data from modbus device
    * @param {import('express').Request} req 
    * @param {import('express').Response} res 
    * @param {import('express').NextFunction} next 
