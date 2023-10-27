@@ -68,7 +68,7 @@ document.addEventListener("alpine:init", async () => {
           showRoller: false,
           ylabel: "Y Label",
           valueRange: [0.0, 1.8],
-          //labels: ["Time", "Random"],
+          // labels: ["Time", "Random"],
         });
         this.devices = await api.get("/modbus/devices");
         window.intervalId = setInterval(() => {
@@ -86,10 +86,10 @@ document.addEventListener("alpine:init", async () => {
       graphData = [];
       this.selectedDevice = device;
     },
-    async removeDevice(id, ctx) {
+    async removeDevice(id) {
       try {
-        //await api.post('/modbus/remove_device', { id });
-        this.devices = _this.devices.filter((d) => d.id != id);
+        await api.post('/modbus/remove_device', { id });
+        this.devices = this.devices.filter((d) => d.id != id);
         this.selectedDevice = null;
       } catch (error) {
         console.error("Error while removing device.", error);
@@ -128,28 +128,37 @@ document.addEventListener("alpine:init", async () => {
     },
   }));
 
-  Alpine.store("confirmDialog", {
+  Alpine.data("dialog", () => ({
     isOpen: false,
+    isLoading: false,
     labels: {
       title: "Confirm dialog",
       body: "Are you sure you want to perform this action?",
     },
-    cb: {
-      fn: null,
-      args: [],
-    },
-    open(title, body, cb, ...args) {
-      this.isOpen = true;
-      this.labels = { title, body };
-      this.cb.fn = cb;
-      this.cb.args = args;
-    },
+    cb: null,
+    onConfirm: () => undefined,
+    onError: () => undefined,
     confirm() {
-      this.cb.fn && this.cb.fn(...this.cb.args);
-      this.close();
+      if (this.onConfirm.constructor.name === 'AsyncFunction') {
+        this.isLoading = true;
+        this.onConfirm()
+          .then(() => this.close())
+          .catch((e) => this.onError(e))
+          .finally(() => this.isLoading = false)
+      } else {
+        this.onConfirm();
+        this.close();
+      }
     },
     close() {
       this.isOpen = false;
+      this.cb = null;
     },
-  });
+    open(event) {
+      const { detail } = event;
+      this.isOpen = detail.isOpen;
+      this.onConfirm = detail.onConfirm;
+      this.labels = { title: detail.title, body: detail.body };
+    }
+  }));
 });

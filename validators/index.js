@@ -17,4 +17,4 @@ export const appConfigSchema = object({
   log_interval_ms: number().min(1000).required(),
 });
 
-export const removeModbusDeviceSchema = object({ id: number().max(255).min(1).required() }) 
+export * from './modbus-device.schema.js'

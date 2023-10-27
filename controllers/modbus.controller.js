@@ -51,6 +51,7 @@ export const modbusController = {
       if (!modbusClient.isOpen) return res.status(400).json({ message: "Already closed." });
       modbusClient.close(undefined);
       modbusClient.destroy(undefined);
+      return res.status(200).json({ message: 'Closed.' });
     } catch (error) {
       next(error);
     }
@@ -77,7 +78,22 @@ export const modbusController = {
    * @param {import('express').Response} res 
    * @param {import('express').NextFunction} next 
    */
-  async createSlaveDevice(req, res, next) {},
+  async createDevice(req, res, next) {
+    try {
+      await db.run(`INSERT INTO "modbus_slaves" (
+                    "id", 
+                    "name", 
+                    "g_display_reg_addr", 
+                    "g_display_reg_format", 
+                    "g_y_label", 
+                    "is_logging") 
+                    VALUES (?, ?, ?, ?, ?, ?)`, 
+                    [...req.body]);
+      return res.send(200).json({ message: 'Device created.', data: req.body });
+    } catch (error) {
+      next(error)
+    }
+  },
 
   /**
    * Remove modbus slave device
@@ -85,7 +101,21 @@ export const modbusController = {
    * @param {import('express').Response} res 
    * @param {import('express').NextFunction} next 
    */
-  async removeSlaveDevice(req, res, next) {
+  async updateDevice(req, res, next) {
+    try {
+
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Remove modbus slave device
+   * @param {import('express').Request} req 
+   * @param {import('express').Response} res 
+   * @param {import('express').NextFunction} next 
+   */
+  async removeDevice(req, res, next) {
     try {
       const device = await db.get(`SELECT id FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
       if (!device) return res.status(404).json({ message: 'Device not found.' });

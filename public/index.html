@@ -27,31 +27,34 @@
           <div class="flex h-full flex-row space-x-2">
             <div class="border-r min-w-[256px] p-2.5 pt-5">
               <div class="flex flex-col space-y-1">
+                <!-- List of devices -->
                 <span class="italic text-sm">Devices:</span>
-                <span x-show="devices.length === 0" class="text-gray-500 text-sm text-center block"
-                  >No devices added.</span
-                >
-                <div class="flex flex-col max-h-[520px] overflow-y-auto space-y-2">
+                <span x-show="devices.length === 0" class="text-gray-500 text-sm text-center block">
+                  No devices added.
+                </span>
+                <div class="flex flex-col max-h-[400px] overflow-y-auto space-y-2">
                   <template x-for="device in devices">
                     <button
                       @click="selectDevice(device)"
                       :class="{'bg-gray-100': selectedDevice?.id === device.id}"
-                      class="w-full select-none border px-2.5 py-3 text-left rounded-sm hover:bg-gray-100 cursor-pointer"
+                      class="w-full min-h-[50px] select-none border px-2.5 py-3 text-left rounded-sm hover:bg-gray-100 cursor-pointer"
                     >
                       <span x-text="device.name" class="text-md font-bold"></span>
                     </button>
                   </template>
                 </div>
-                <button class="w-full text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer">
+                <!-- Add new device -->
+                <button class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer">
                   <span class="text-4xl text-gray-400 select-none">+</span>
                 </button>
               </div>
               <hr class="my-4" />
+              <!-- Connection -->
               <div>
                 <span class="italic text-sm">Connection:</span>
                 <div class="flex flex-col mt-1.5">
-                  <span class="text-sm"
-                    >Status:
+                  <span class="text-sm">
+                    Status:
                     <b x-show="$store.app.is_opened" class="text-green-700">Opened</b>
                     <b x-show="!$store.app.is_opened" class="text-red-700">Closed</b>
                   </span>
@@ -63,20 +66,27 @@
               <div x-show="selectedDevice != null">
                 <div class="pt-5 border-b flex justify-between items-center pr-6">
                   <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2"></h2>
+                  <!-- Device create, delete -->
                   <div>
                     <a href="#">Edit</a>
-                    <a
-                      @click="$store.confirmDialog.open('Remove device', `Delete ${selectedDevice.name}? All logs will be cleared.`, removeDevice, selectedDevice.id)"
+                    <a @click="$dispatch('dialog', { 
+                                          title: 'Remove device', 
+                                          body: `Remove ${selectedDevice.name}? All logs will be cleared.`,
+                                          isOpen: true,
+                                          onConfirm: async () => await removeDevice(selectedDevice.id)
+                                        });"
                       class="text-red-500"
-                      href="#"
-                      >Delete</a
-                    >
+                      href="#">
+                      Delete
+                    </a>
                   </div>
                 </div>
+                <!-- Display Graph -->
                 <div class="mt-4">
                   <div id="div_g" x-ref="graph" style="width: 720px; height: 300px"></div>
                 </div>
                 <hr class="mt-10" />
+                <!-- Display values -->
                 <h2 class="text-xl font-bold mb-3">Display values</h2>
               </div>
               <div class="select-none" x-show="selectedDevice === null">
@@ -90,7 +100,7 @@
 
       <!-- Configuration content -->
       <template x-if="$store.app.currentPage === 'configuration'">
-        <main class="mt-6" x-data="configAppPage" x-bind:hidden="$store.app.currentPage !== 'configuration'">
+        <main class="mt-6 mb-2" x-data="configAppPage" x-bind:hidden="$store.app.currentPage !== 'configuration'">
           <div class="border rounded-sm p-4 max-w-2xl mx-auto">
             <h2 class="text-2xl font-bold">Setup configuration</h2>
             <p class="text-gray-700 italic">
@@ -295,31 +305,34 @@
         </main>
       </template>
 
-      <!-- Confirm dialog -->
-      <div x-show="$store.confirmDialog.isOpen" class="backdrop z-50">
-        <div
-          role="dialog"
-          @click.away="$store.confirmDialog.close()"
-          class="px-4 py-3.5 ml-auto mr-auto mt-20 bg-white max-w-md border rounded-sm"
-        >
-          <div class="flex justify-between items-center">
-            <h2 x-text="$store.confirmDialog.labels.title" class="font-bold text-lg"></h2>
-            <button @click="$store.confirmDialog.close()" aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
-                />
-              </svg>
-            </button>
+      <!-- Dialog -->
+      <div x-data="dialog">
+        <template @dialog.window="open($event)" x-if="isOpen">
+          <div class="backdrop z-50">
+              <div
+                role="dialog"
+                class="px-4 py-3.5 ml-auto mr-auto mt-20 bg-white max-w-md border rounded-sm"
+              >
+                <div class="flex justify-between items-center">
+                  <h2 x-text="labels.title" class="font-bold text-lg"></h2>
+                  <button @click="close()" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <hr />
+                <p x-text="labels.body"></p>
+                <div class="mt-4 flex justify-end space-x-2">
+                  <button x-bind:disabled="isLoading" x-bind:class="isLoading && 'opacity-70'" @click="confirm()" class="btn">Confirm</button>
+                  <button @click="close()" class="btn bg-red-500">Cancel</button>
+                </div>
+              </div>
           </div>
-          <hr />
-          <p x-text="$store.confirmDialog.labels.body"></p>
-          <div class="mt-4 flex justify-end space-x-2">
-            <button @click="$store.confirmDialog.confirm()" class="btn">Confirm</button>
-            <button @click="$store.confirmDialog.close()" class="btn bg-red-500">Cancel</button>
-          </div>
-        </div>
+        </template>
       </div>
     </div>
   </body>

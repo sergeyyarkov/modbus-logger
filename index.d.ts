@@ -10,10 +10,3 @@ export type AppConfig = {
   log_interval_ms: number;
 };
 
-export type SlaveModbusDevice = {
-  id: number;
-  name: string;
-  display_reg_addr: number | null;
-  display_reg_format: number | null;
-  is_logging: boolean;
-}

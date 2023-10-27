@@ -4,7 +4,7 @@ import pino from "pino-http";
 /**
  * Routers
  */
-import { apiRouter } from "#root/routes/api.router.js";
+import { apiRouter } from "#root/routes/index.js";
 
 /**
  * Middlewares
