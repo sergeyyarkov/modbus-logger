@@ -60,6 +60,15 @@ document.addEventListener("alpine:init", async () => {
   Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
     devices: [],
+    modalCreateDevice: {
+      isOpen: false,
+      open() {
+        this.isOpen = true;
+      },
+      close() {
+        this.isOpen = false;
+      },
+    },
     async init() {
       try {
         this.$store.app.currentPage = "loading";
@@ -88,7 +97,7 @@ document.addEventListener("alpine:init", async () => {
     },
     async removeDevice(id) {
       try {
-        await api.post('/modbus/remove_device', { id });
+        await api.post("/modbus/remove_device", { id });
         this.devices = this.devices.filter((d) => d.id != id);
         this.selectedDevice = null;
       } catch (error) {
@@ -135,16 +144,15 @@ document.addEventListener("alpine:init", async () => {
       title: "Confirm dialog",
       body: "Are you sure you want to perform this action?",
     },
-    cb: null,
     onConfirm: () => undefined,
     onError: () => undefined,
     confirm() {
-      if (this.onConfirm.constructor.name === 'AsyncFunction') {
+      if (this.onConfirm.constructor.name === "AsyncFunction") {
         this.isLoading = true;
         this.onConfirm()
           .then(() => this.close())
           .catch((e) => this.onError(e))
-          .finally(() => this.isLoading = false)
+          .finally(() => (this.isLoading = false));
       } else {
         this.onConfirm();
         this.close();
@@ -152,13 +160,17 @@ document.addEventListener("alpine:init", async () => {
     },
     close() {
       this.isOpen = false;
-      this.cb = null;
     },
+
+    /**
+     * Update dialog state on event
+     * @param {CustomEvent} event
+     */
     open(event) {
       const { detail } = event;
       this.isOpen = detail.isOpen;
       this.onConfirm = detail.onConfirm;
       this.labels = { title: detail.title, body: detail.body };
-    }
+    },
   }));
 });

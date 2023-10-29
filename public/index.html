@@ -16,7 +16,7 @@
     </div> -->
 
     <!-- Root element -->
-    <div x-data x-cloak class="mx-auto max-w-5xl flex flex-col h-screen">
+    <div x-data class="mx-auto max-w-5xl flex flex-col h-screen px-2.5">
       <!-- Monitoring content -->
       <template x-if="$store.app.currentPage === 'monitoring'">
         <main x-data="monitoringPage" class="flex-1" x-bind:hidden="$store.app.currentPage !== 'monitoring'">
@@ -25,7 +25,7 @@
             <button @click="$store.app.setPage('configuration')" class="btn">Config</button>
           </div> -->
           <div class="flex h-full flex-row space-x-2">
-            <div class="border-r min-w-[256px] p-2.5 pt-5">
+            <div class="border-r min-w-[256px] p-2.5 pl-0 pt-5">
               <div class="flex flex-col space-y-1">
                 <!-- List of devices -->
                 <span class="italic text-sm">Devices:</span>
@@ -33,7 +33,7 @@
                   No devices added.
                 </span>
                 <div class="flex flex-col max-h-[400px] overflow-y-auto space-y-2">
-                  <template x-for="device in devices">
+                  <template x-for="device in devices" :key="device.id">
                     <button
                       @click="selectDevice(device)"
                       :class="{'bg-gray-100': selectedDevice?.id === device.id}"
@@ -43,8 +43,50 @@
                     </button>
                   </template>
                 </div>
-                <!-- Add new device -->
-                <button class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer">
+                <!-- MODAL: Create new device -->
+                <template x-teleport="body">
+                  <div
+                    @keyup.escape.window="modalCreateDevice.close()"
+                    class="backdrop z-50"
+                    x-show="modalCreateDevice.isOpen"
+                  >
+                    <div class="modal">
+                      <div class="flex justify-between items-center">
+                        <h2 class="font-bold text-lg">Create new device</h2>
+                        <button @click="modalCreateDevice.close()" aria-label="Close">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path
+                              fill="currentColor"
+                              d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <hr />
+                      <form x-on:submit.prevent="createDevice" action="#">
+                        <div class="flex flex-col space-y-2">
+                          <div>
+                            <label for="id">Slave Id</label>
+                            <input placeholder="1" id="id" name="id" type="number" min="1" max="255" required />
+                          </div>
+                          <div>
+                            <label for="id">Name</label>
+                            <input placeholder="Device #1" id="id" name="id" type="text" required />
+                          </div>
+                        </div>
+                      </form>
+                      <div class="mt-4 flex justify-end space-x-2">
+                        <button class="btn">Create</button>
+                        <button @click="modalCreateDevice.close()" class="btn bg-red-500">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <!-- Create new device -->
+                <button
+                  @click="modalCreateDevice.open()"
+                  class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer"
+                >
                   <span class="text-4xl text-gray-400 select-none">+</span>
                 </button>
               </div>
@@ -64,30 +106,73 @@
             </div>
             <div class="flex-auto pl-2">
               <div x-show="selectedDevice != null">
-                <div class="pt-5 border-b flex justify-between items-center pr-6">
-                  <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2"></h2>
+                <div class="pt-5 border-b flex flex-wrap justify-between items-center pr-6">
+                  <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2 mr-2"></h2>
                   <!-- Device create, delete -->
                   <div>
                     <a href="#">Edit</a>
-                    <a @click="$dispatch('dialog', { 
+                    <a
+                      @click="$dispatch('dialog', { 
                                           title: 'Remove device', 
                                           body: `Remove ${selectedDevice.name}? All logs will be cleared.`,
                                           isOpen: true,
                                           onConfirm: async () => await removeDevice(selectedDevice.id)
                                         });"
                       class="text-red-500"
-                      href="#">
+                      href="#"
+                    >
                       Delete
                     </a>
                   </div>
                 </div>
+
                 <!-- Display Graph -->
-                <div class="mt-4">
-                  <div id="div_g" x-ref="graph" style="width: 720px; height: 300px"></div>
+                <div x-show="selectedDevice?.g_display_reg_addr != null" class="mt-4">
+                  <div id="div_g" style="width: 720px; height: 300px"></div>
+                  <hr class="my-3" />
                 </div>
-                <hr class="mt-10" />
                 <!-- Display values -->
-                <h2 class="text-xl font-bold mb-3">Display values</h2>
+                <h2 class="text-xl font-bold mb-3 mt-5">Display values</h2>
+                <div>
+                  <div class="grid grid-cols-1 md:sm:grid-cols-2 lg:sm:grid-cols-3 gap-2">
+                    <template x-for="value in [1,2,3,4,5]">
+                      <div class="border-2 p-2.5 rounded-sm">
+                        <div class="flex justify-between">
+                          <h3 class="text-xl font-bold">CV1</h3>
+                          <div>
+                            <button>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                <path
+                                  fill="#eab308"
+                                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83l3.75 3.75l1.83-1.83z"
+                                />
+                              </svg>
+                            </button>
+                            <button>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                <path
+                                  fill="#ef4444"
+                                  d="m9.4 16.5l2.6-2.6l2.6 2.6l1.4-1.4l-2.6-2.6L16 9.9l-1.4-1.4l-2.6 2.6l-2.6-2.6L8 9.9l2.6 2.6L8 15.1l1.4 1.4ZM5 21V6H4V4h5V3h6v1h5v2h-1v15H5Zm2-2h10V6H7v13ZM7 6v13V6Z"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                        <hr />
+                        <div class="flex flex-col">
+                          <span>Value: 7892</span>
+                          <span>Reg Addr: 6</span>
+                          <span>Format: 32</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div
+                      class="flex justify-center items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
+                    >
+                      <span class="text-5xl text-gray-400 font-bold select-none">+</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="select-none" x-show="selectedDevice === null">
                 <span class="block text-center italic text-gray-500 mt-10">No device selected.</span>
@@ -307,30 +392,34 @@
 
       <!-- Dialog -->
       <div x-data="dialog">
-        <template @dialog.window="open($event)" x-if="isOpen">
+        <template @dialog.window="open($event)" @keyup.escape.window="close()" x-if="isOpen">
           <div class="backdrop z-50">
-              <div
-                role="dialog"
-                class="px-4 py-3.5 ml-auto mr-auto mt-20 bg-white max-w-md border rounded-sm"
-              >
-                <div class="flex justify-between items-center">
-                  <h2 x-text="labels.title" class="font-bold text-lg"></h2>
-                  <button @click="close()" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <hr />
-                <p x-text="labels.body"></p>
-                <div class="mt-4 flex justify-end space-x-2">
-                  <button x-bind:disabled="isLoading" x-bind:class="isLoading && 'opacity-70'" @click="confirm()" class="btn">Confirm</button>
-                  <button @click="close()" class="btn bg-red-500">Cancel</button>
-                </div>
+            <div role="dialog" class="modal">
+              <div class="flex justify-between items-center">
+                <h2 x-text="labels.title" class="font-bold text-lg"></h2>
+                <button @click="close()" aria-label="Close">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
+                    />
+                  </svg>
+                </button>
               </div>
+              <hr />
+              <p x-text="labels.body"></p>
+              <div class="mt-4 flex justify-end space-x-2">
+                <button
+                  x-bind:disabled="isLoading"
+                  x-bind:class="isLoading && 'opacity-70'"
+                  @click="confirm()"
+                  class="btn"
+                >
+                  Confirm
+                </button>
+                <button @click="close()" class="btn bg-red-500">Cancel</button>
+              </div>
+            </div>
           </div>
         </template>
       </div>
