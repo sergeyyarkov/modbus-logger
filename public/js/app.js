@@ -52,23 +52,58 @@ document.addEventListener("alpine:init", async () => {
         this.currentPage = "404";
         return;
       }
-
       this.currentPage = page;
     },
   });
 
+  Alpine.data('deviceModal', () => ({
+    isOpen: false,
+    isLoading: false,
+    error: null,
+    data: {
+      id: null,
+      name: '',
+      g_display_reg_addr: null,
+      g_display_reg_format: 16,
+      g_y_label: '',
+      is_logging: false
+    },
+    resetDataFields() {
+      this.data.id = null;
+      this.data.name = '';
+      this.data.g_display_reg_addr = null;
+      this.data.g_display_reg_format = 16;
+      this.data.g_y_label =  '';
+      this.data.is_logging = false;
+    },
+    async create(cb) {
+      try {
+        this.isLoading = true;
+        this.error = null;
+        await api.post('/modbus/create_device', utils.dellNullableKeys({...this.data}));
+        graphData = [] // todo: update graph data
+        this.$dispatch('add-device', {...this.data}); // add device to state
+        this.resetDataFields();
+        this.close();
+        cb && cb();
+      } catch (error) {
+        this.error = error
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    open() {
+      this.isOpen = true;
+    },
+    close() {
+      this.isOpen = false;
+    },
+  }))
+
   Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
     devices: [],
-    modalCreateDevice: {
-      isOpen: false,
-      open() {
-        this.isOpen = true;
-      },
-      close() {
-        this.isOpen = false;
-      },
-    },
     async init() {
       try {
         this.$store.app.currentPage = "loading";
@@ -92,7 +127,7 @@ document.addEventListener("alpine:init", async () => {
     },
     selectDevice(device) {
       if (device.id === this.selectedDevice?.id) return;
-      graphData = [];
+      graphData = []; // todo: reset graph
       this.selectedDevice = device;
     },
     async removeDevice(id) {
@@ -104,6 +139,14 @@ document.addEventListener("alpine:init", async () => {
         console.error("Error while removing device.", error);
       }
     },
+    async removeDisplayValue(id) {
+      try {
+        await api.post('/modbus/remove_display-value', { id });
+        this.selectedDevice.display_values = this.selectedDevice.display_values.filter(v => v.id != id);
+      } catch (error) {
+        console.error("Error while removing display value", error);
+      }
+    }
   }));
 
   Alpine.data("configAppPage", () => ({

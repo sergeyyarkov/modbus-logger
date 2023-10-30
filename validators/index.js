@@ -18,3 +18,4 @@ export const appConfigSchema = object({
 });
 
 export * from './modbus-device.schema.js'
+export * from './display-value.schema.js'

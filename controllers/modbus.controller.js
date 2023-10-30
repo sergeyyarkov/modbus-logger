@@ -65,7 +65,23 @@ export const modbusController = {
    */
   async list(req, res, next) {
     try {
-      const slaves = await db.all('SELECT * from modbus_slaves');
+      const slaves = await db.all(`
+          SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging,
+          CASE
+            WHEN COUNT(dv.id) = 0 THEN '[]'
+            ELSE '[' || GROUP_CONCAT(
+              JSON_OBJECT(
+                'id', dv.id,
+                'name', dv.name,
+                'reg_addr', dv.reg_addr,
+                'reg_format', dv.reg_format
+              ), ', '
+            ) || ']' END AS display_values
+          FROM modbus_slaves AS ms
+          LEFT JOIN display_values AS dv ON dv.slave_id = ms.id
+          GROUP BY ms.id, ms.name;
+      `);
+      slaves.forEach(s => (s.display_values = JSON.parse(s.display_values)))
       return res.status(200).json(slaves);
     } catch (error) {
       next(error)
@@ -80,6 +96,7 @@ export const modbusController = {
    */
   async createDevice(req, res, next) {
     try {
+      const { id, name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging } = req.body;
       await db.run(`INSERT INTO "modbus_slaves" (
                     "id", 
                     "name", 
@@ -88,8 +105,8 @@ export const modbusController = {
                     "g_y_label", 
                     "is_logging") 
                     VALUES (?, ?, ?, ?, ?, ?)`, 
-                    [...req.body]);
-      return res.send(200).json({ message: 'Device created.', data: req.body });
+                    [id, name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging]);
+      return res.status(200).json({ message: 'Device created.' });
     } catch (error) {
       next(error)
     }
@@ -140,7 +157,14 @@ export const modbusController = {
    * @param {import('express').Response} res 
    * @param {import('express').NextFunction} next 
    */
-  async removeDisplayValue(req, res, next) {},
+  async removeDisplayValue(req, res, next) {
+    try {
+      await db.run(`DELETE FROM "display_values" WHERE id = ?`, req.body.id);
+      return res.status(200).json({ message: 'Display value removed.' });
+    } catch (error) {
+      next(error);
+    }
+  },
 
   /**
    * Get latest data log from modbus slave device

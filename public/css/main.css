@@ -29,6 +29,10 @@ select {
   @apply w-full border py-1 rounded-sm my-0.5 bg-white;
 }
 
+input[type="checkbox"] {
+  @apply w-auto m-0 align-middle;
+}
+
 input {
   @apply px-1.5;
 }

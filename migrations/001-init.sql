@@ -22,19 +22,20 @@ CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"id" INTEGER CHECK (id >= 1 AND id <= 255),
 	"name" VARCHAR(256) NOT NULL,
 	-- Holding register
-	"g_display_reg_addr" INTEGER CHECK(g_display_reg_addr >= 0 AND g_display_reg_addr <= 65534), 
+	"g_display_reg_addr" INTEGER CHECK(g_display_reg_addr >= 0 AND g_display_reg_addr <= 65534) DEFAULT NULL, 
 	-- Use 1 or 2 bytes
-	"g_display_reg_format" INTEGER CHECK(g_display_reg_format IN(16, 32)),
-	"g_y_label" VARCHAR(40),
-	"is_logging" BOOLEAN NOT NULL,
+	"g_display_reg_format" INTEGER CHECK(g_display_reg_format IN(16, 32)) DEFAULT 16,
+	"g_y_label" VARCHAR(40) DEFAULT "Label",
+	"is_logging" BOOLEAN NOT NULL DEFAULT FALSE,
 	PRIMARY KEY("id")
 );
 
 CREATE TABLE IF NOT EXISTS "display_values" (
 	"id" INTEGER,
-	"name" VARCHAR(32),
+	"name" VARCHAR(32) NOT NULL,
 	"slave_id" INTEGER NOT NULL,
 	"reg_addr" INTEGER DEFAULT 0 NOT NULL CHECK(reg_addr >= 0 AND reg_addr <= 65534),
+	"reg_format" INTEGER NOT NULL CHECK(reg_format IN(16, 32)) DEFAULT 16,
 	PRIMARY KEY("id"),
 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
 );
@@ -62,6 +63,17 @@ INSERT INTO "modbus_slaves" (
 	(3, "Device #3", 8, 16, "Label 3", 0),
 	(4, "Device #4", NULL, NULL, "Label 4", 0);
 
+INSERT INTO "display_values" (
+	"id", "name", "slave_id", "reg_addr", "reg_format"
+) VALUES
+	(1, "CV1", 1, 0, 16),
+	(2, "CV2", 1, 1, 16),
+	(3, "SP", 1, 2, 16),
+	(4, "CV1", 2, 3, 16),
+	(5, "CV2", 2, 4, 16),
+	(6, "SP", 2, 5, 16),
+	(7, "CV1", 3, 6, 16),
+	(8, "SP", 3, 7, 16);
 --------------------------------------------------------------------------------
 -- Down
 --------------------------------------------------------------------------------

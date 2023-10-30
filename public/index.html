@@ -20,10 +20,6 @@
       <!-- Monitoring content -->
       <template x-if="$store.app.currentPage === 'monitoring'">
         <main x-data="monitoringPage" class="flex-1" x-bind:hidden="$store.app.currentPage !== 'monitoring'">
-          <!-- <div>
-            <h1 class="text-3xl font-bold">Monitoring page</h1>
-            <button @click="$store.app.setPage('configuration')" class="btn">Config</button>
-          </div> -->
           <div class="flex h-full flex-row space-x-2">
             <div class="border-r min-w-[256px] p-2.5 pl-0 pt-5">
               <div class="flex flex-col space-y-1">
@@ -32,13 +28,12 @@
                 <span x-show="devices.length === 0" class="text-gray-500 text-sm text-center block">
                   No devices added.
                 </span>
-                <div class="flex flex-col max-h-[400px] overflow-y-auto space-y-2">
+                <div @add-device.window="devices = [...devices, $event.detail]; selectedDevice = $event.detail" class="flex flex-col max-h-[400px] overflow-y-auto space-y-2">
                   <template x-for="device in devices" :key="device.id">
                     <button
                       @click="selectDevice(device)"
                       :class="{'bg-gray-100': selectedDevice?.id === device.id}"
-                      class="w-full min-h-[50px] select-none border px-2.5 py-3 text-left rounded-sm hover:bg-gray-100 cursor-pointer"
-                    >
+                      class="w-full min-h-[50px] select-none border px-2.5 py-3 text-left rounded-sm hover:bg-gray-100 cursor-pointer">
                       <span x-text="device.name" class="text-md font-bold"></span>
                     </button>
                   </template>
@@ -46,14 +41,15 @@
                 <!-- MODAL: Create new device -->
                 <template x-teleport="body">
                   <div
-                    @keyup.escape.window="modalCreateDevice.close()"
+                    x-data="deviceModal"
+                    @open-create-device-modal.window="open()"
+                    @keyup.escape.window="close()"
                     class="backdrop z-50"
-                    x-show="modalCreateDevice.isOpen"
-                  >
+                    x-show="isOpen">
                     <div class="modal">
                       <div class="flex justify-between items-center">
                         <h2 class="font-bold text-lg">Create new device</h2>
-                        <button @click="modalCreateDevice.close()" aria-label="Close">
+                        <button @click="close()" aria-label="Close">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                             <path
                               fill="currentColor"
@@ -63,30 +59,60 @@
                         </button>
                       </div>
                       <hr />
-                      <form x-on:submit.prevent="createDevice" action="#">
-                        <div class="flex flex-col space-y-2">
+                      <form x-data="{ graphView: '' }" @submit.prevent="create(() => graphView = 'none')" action="#">
+                        <div x-id="['id', 'name', 'graph-display', 'g_display_reg_addr', 'g_display_reg_format', 'g_y_label', 'is_logging']" class="flex flex-col space-y-2">
                           <div>
-                            <label for="id">Slave Id</label>
-                            <input placeholder="1" id="id" name="id" type="number" min="1" max="255" required />
+                            <label :for="$id('id')"><span class="text-red-500">*</span>Slave ID:</label>
+                            <input x-model.number="data.id" :id="$id('id')" name="id" placeholder="1" type="number" min="1" max="255" required />
                           </div>
                           <div>
-                            <label for="id">Name</label>
-                            <input placeholder="Device #1" id="id" name="id" type="text" required />
+                            <label :for="$id('name')"><span class="text-red-500">*</span>Name:</label>
+                            <input x-model="data.name" placeholder="Device #1" :id="$id('name')" name="name" type="text" required />
+                          </div>
+                          <div>
+                            <label :for="$id('graph-display')">Graph Display</label>
+                            <select x-model="graphView" :id="$id('graph-display')">
+                              <option value="none">None</option>
+                              <option value="new-value">New value</option>
+                            </select>
+                          </div>
+                          <div x-show="graphView === 'new-value'">
+                            <div>
+                              <label :for="$id('g_y_label')"><span class="text-red-500">*</span>Value name:</label>
+                              <input x-model="data.g_y_label" :id="$id('g_y_label')" :required="graphView === 'new-value'" name="g_y_label" placeholder="PV" type="text" />
+                            </div>
+                            <div>
+                              <label :for="$id('g_display_reg_addr')"><span class="text-red-500">*</span>Register address:</label>
+                              <input x-model="data.g_display_reg_addr" :id="$id('g_display_reg_addr')" name="g_display_reg_addr" placeholder="1" type="number" min="0" max="65534" :required="graphView === 'new-value'" />
+                            </div>
+                            <div>
+                              <label :for="$id('g_display_reg_format')"><span class="text-red-500">*</span>Format (bits):</label>
+                              <select x-model.number="data.g_display_reg_format" :id="$id('g_display_reg_format')" name="g_display_reg_format">
+                                <option value="16">16</option>
+                                <option value="32">32</option>
+                              </select>
+                            </div>
+                            <div>
+                              <input x-model="data.is_logging" :id="$id('is_logging')" name="is_logging" type="checkbox" />
+                              <label :for="$id('is_logging')">Logging</label>
+                            </div>
                           </div>
                         </div>
+                        <div>
+                          <span x-text="error?.message" class="text-red-500"></span>
+                        </div>
+                        <div class="mt-4 flex justify-end space-x-2">
+                          <button x-bind:disabled="isLoading" x-bind:class="isLoading && 'opacity-70'" type="submit" class="btn">Create</button>
+                          <button @click="close()" class="btn bg-red-500">Cancel</button>
+                        </div>
                       </form>
-                      <div class="mt-4 flex justify-end space-x-2">
-                        <button class="btn">Create</button>
-                        <button @click="modalCreateDevice.close()" class="btn bg-red-500">Cancel</button>
-                      </div>
                     </div>
                   </div>
                 </template>
                 <!-- Create new device -->
                 <button
-                  @click="modalCreateDevice.open()"
-                  class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer"
-                >
+                  @click="$dispatch('open-create-device-modal')"
+                  class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer">
                   <span class="text-4xl text-gray-400 select-none">+</span>
                 </button>
               </div>
@@ -107,25 +133,25 @@
             <div class="flex-auto pl-2">
               <div x-show="selectedDevice != null">
                 <div class="pt-5 border-b flex flex-wrap justify-between items-center pr-6">
-                  <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2 mr-2"></h2>
-                  <!-- Device create, delete -->
+                  <div class="mb-2">
+                    <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2 mr-2"></h2>
+                    <span>ID: </span><span x-text="selectedDevice?.id"></span>
+                  </div>
+                  <!-- Device create, delete buttons -->
                   <div>
                     <a href="#">Edit</a>
-                    <a
-                      @click="$dispatch('dialog', { 
+                    <a @click="$dispatch('dialog', { 
                                           title: 'Remove device', 
                                           body: `Remove ${selectedDevice.name}? All logs will be cleared.`,
                                           isOpen: true,
                                           onConfirm: async () => await removeDevice(selectedDevice.id)
                                         });"
                       class="text-red-500"
-                      href="#"
-                    >
+                      href="#">
                       Delete
                     </a>
                   </div>
                 </div>
-
                 <!-- Display Graph -->
                 <div x-show="selectedDevice?.g_display_reg_addr != null" class="mt-4">
                   <div id="div_g" style="width: 720px; height: 300px"></div>
@@ -133,13 +159,14 @@
                 </div>
                 <!-- Display values -->
                 <h2 class="text-xl font-bold mb-3 mt-5">Display values</h2>
-                <div>
+                <div class="mb-2">
                   <div class="grid grid-cols-1 md:sm:grid-cols-2 lg:sm:grid-cols-3 gap-2">
-                    <template x-for="value in [1,2,3,4,5]">
+                    <template x-for="value in selectedDevice?.display_values" :key="value.id">
                       <div class="border-2 p-2.5 rounded-sm">
-                        <div class="flex justify-between">
-                          <h3 class="text-xl font-bold">CV1</h3>
-                          <div>
+                        <div class="flex justify-between items-start">
+                          <h3 x-text="value.name" class="text-xl font-bold"></h3>
+                          <div class="flex">
+                            <!-- Edit display value -->
                             <button>
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                 <path
@@ -148,7 +175,13 @@
                                 />
                               </svg>
                             </button>
-                            <button>
+                            <!-- Remove display value -->
+                            <button @click="$dispatch('dialog', { 
+                              title: 'Remove display value', 
+                              body: `Remove display value ${value.name}?`,
+                              isOpen: true,
+                              onConfirm: async () => await removeDisplayValue(value.id)
+                            });">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                 <path
                                   fill="#ef4444"
@@ -160,14 +193,14 @@
                         </div>
                         <hr />
                         <div class="flex flex-col">
-                          <span>Value: 7892</span>
-                          <span>Reg Addr: 6</span>
-                          <span>Format: 32</span>
+                          <span>Value: ---</span>
+                          <span>Reg Addr: <span x-text="value.reg_addr"></span></span>
+                          <span>Format: <span x-text="value.reg_format"></span></span>
                         </div>
                       </div>
                     </template>
                     <div
-                      class="flex justify-center items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
+                      class="flex justify-center min-h-[140px] items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
                     >
                       <span class="text-5xl text-gray-400 font-bold select-none">+</span>
                     </div>
