@@ -3,8 +3,10 @@ import "./alpine.js";
 import api from "./api.js";
 import * as utils from "./utils/index.js";
 
-const pages = ["loading", "monitoring", "configuration", "404"];
-let graphData = [[0, 0]];
+var pages = ["loading", "monitoring", "configuration", "404"];
+var dataStreamSource;
+var graphData = [[0, 0]];
+var g;
 
 document.addEventListener("alpine:init", async () => {
   Alpine.store("app", {
@@ -56,38 +58,38 @@ document.addEventListener("alpine:init", async () => {
     },
   });
 
-  Alpine.data('deviceModal', () => ({
+  Alpine.data("deviceModal", () => ({
     isOpen: false,
     isLoading: false,
     error: null,
     data: {
       id: null,
-      name: '',
+      name: "",
       g_display_reg_addr: null,
       g_display_reg_format: 16,
-      g_y_label: '',
-      is_logging: false
+      g_y_label: "",
+      is_logging: false,
     },
     resetDataFields() {
       this.data.id = null;
-      this.data.name = '';
+      this.data.name = "";
       this.data.g_display_reg_addr = null;
       this.data.g_display_reg_format = 16;
-      this.data.g_y_label =  '';
+      this.data.g_y_label = "";
       this.data.is_logging = false;
     },
     async create(cb) {
       try {
         this.isLoading = true;
         this.error = null;
-        await api.post('/modbus/create_device', utils.dellNullableKeys({...this.data}));
-        graphData = [] // todo: update graph data
-        this.$dispatch('add-device', {...this.data}); // add device to state
+        await api.post("/modbus/create_device", utils.dellNullableKeys({ ...this.data }));
+        graphData = []; // todo: update graph data
+        this.$dispatch("add-device", { ...this.data }); // add device to state
         this.resetDataFields();
         this.close();
         cb && cb();
       } catch (error) {
-        this.error = error
+        this.error = error;
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -99,7 +101,7 @@ document.addEventListener("alpine:init", async () => {
     close() {
       this.isOpen = false;
     },
-  }))
+  }));
 
   Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
@@ -107,18 +109,11 @@ document.addEventListener("alpine:init", async () => {
     async init() {
       try {
         this.$store.app.currentPage = "loading";
-        var g = new Dygraph(document.getElementById("div_g"), graphData, {
-          drawPoints: false,
-          showRoller: false,
-          ylabel: "Y Label",
-          valueRange: [0.0, 1.8],
-          // labels: ["Time", "Random"],
-        });
         this.devices = await api.get("/modbus/devices");
-        window.intervalId = setInterval(() => {
-          graphData.push([new Date(), Math.random()]);
-          g.updateOptions({ file: graphData });
-        }, 500);
+        // window.intervalId = setInterval(() => {
+        //   graphData.push([new Date(), Math.random()]);
+        //   g.updateOptions({ file: graphData });
+        // }, 500);
       } catch (error) {
         this.$store.app.error = error;
       } finally {
@@ -126,6 +121,21 @@ document.addEventListener("alpine:init", async () => {
       }
     },
     selectDevice(device) {
+      dataStreamSource?.close();
+      dataStreamSource = new EventSource(`/api/modbus/data_stream?slave_id=${device.id}`);
+      g = new Dygraph(document.getElementById("div_g"), graphData, {
+        drawPoints: false,
+        showRoller: false,
+        ylabel: device.g_y_label,
+        // valueRange: [0, 1000],
+        // labels: ["Time", "Random"],
+      });
+      dataStreamSource.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        console.log(data);
+        graphData.push([new Date(), data.graph.value]);
+        g.updateOptions({ file: graphData });
+      };
       if (device.id === this.selectedDevice?.id) return;
       graphData = []; // todo: reset graph
       this.selectedDevice = device;
@@ -141,12 +151,12 @@ document.addEventListener("alpine:init", async () => {
     },
     async removeDisplayValue(id) {
       try {
-        await api.post('/modbus/remove_display-value', { id });
-        this.selectedDevice.display_values = this.selectedDevice.display_values.filter(v => v.id != id);
+        await api.post("/modbus/remove_display-value", { id });
+        this.selectedDevice.display_values = this.selectedDevice.display_values.filter((v) => v.id != id);
       } catch (error) {
         console.error("Error while removing display value", error);
       }
-    }
+    },
   }));
 
   Alpine.data("configAppPage", () => ({
