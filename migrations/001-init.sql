@@ -58,22 +58,22 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 INSERT INTO "modbus_slaves" (
 	"id", "name", "g_display_reg_addr", "g_display_reg_format", "g_y_label", "is_logging"
 ) VALUES
-	(1, "Device #1", 1, 16, "Label 1", 1),
-	(2, "Device #2", 2, 32, "Label 2", 1),
-	(3, "Device #3", 8, 16, "Label 3", 0),
+	(1, "Device #1", 0, 16, "Label 1", 1),
+	(2, "Device #2", 1, 32, "Label 2", 1),
+	(3, "Device #3", 3, 16, "Label 3", 0),
 	(4, "Device #4", NULL, NULL, "Label 4", 0);
 
 INSERT INTO "display_values" (
 	"id", "name", "slave_id", "reg_addr", "reg_format"
 ) VALUES
-	(1, "CV1", 1, 0, 16),
-	(2, "CV2", 1, 1, 16),
-	(3, "SP", 1, 2, 16),
-	(4, "CV1", 2, 3, 16),
-	(5, "CV2", 2, 4, 16),
-	(6, "SP", 2, 5, 16),
-	(7, "CV1", 3, 6, 16),
-	(8, "SP", 3, 7, 16);
+	(1, "CV1", 1, 10, 16),
+	(2, "CV2", 1, 11, 16),
+	(3, "SP", 1, 12, 16),
+	(4, "CV1", 2, 13, 16),
+	(5, "CV2", 2, 14, 16),
+	(6, "SP", 2, 15, 16),
+	(7, "CV1", 3, 16, 16),
+	(8, "SP", 3, 17, 16);
 --------------------------------------------------------------------------------
 -- Down
 --------------------------------------------------------------------------------

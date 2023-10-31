@@ -208,6 +208,7 @@ export const modbusController = {
       if (!req.query.slave_id) return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
 
       const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [req.query.slave_id]);
+      const displayValues = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [req.query.slave_id])
 
       if (!device) return res.status(404).json({ error: { message: "Device not found." } });
 
@@ -216,8 +217,12 @@ export const modbusController = {
       res.setHeader("Connection", "keep-alive");
 
       let interval = setInterval(async () => {
-        let value = 0;
-        let len = 1; // 16 bits default
+      let graphValue = 0;
+      let len = 1; // 16 bits default
+
+      for (const value of displayValues) {
+        value.data = Buffer.from((await modbusClient.readHoldingRegisters(value.reg_addr, 1)).buffer).readUInt16BE();
+      }
 
         if (device.g_display_reg_format === 32) len = 2;
         // ...64, 128, 256...
@@ -226,17 +231,20 @@ export const modbusController = {
 
         switch (device.g_display_reg_format) {
           case 32:
-            value = Buffer.from(result.buffer).readUInt32BE();
+            graphValue = Buffer.from(result.buffer).readUInt32BE();
             break;
           case 16:
-            value = Buffer.from(result.buffer).readUint16BE();
+            graphValue = Buffer.from(result.buffer).readUint16BE();
             break;
           default:
             break;
         }
 
         res.write("event: message\n");
-        res.write(`data: ${JSON.stringify({ graph: { value, format: device.g_display_reg_format } })}\n\n`);
+        res.write(`data: ${JSON.stringify({ 
+          graph: { value: graphValue, format: device.g_display_reg_format },
+          displayValues
+        })}\n\n`);
       }, 1000);
       req.on("close", () => clearInterval(interval));
     } catch (error) {

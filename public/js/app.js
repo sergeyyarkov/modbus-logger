@@ -5,7 +5,7 @@ import * as utils from "./utils/index.js";
 
 var pages = ["loading", "monitoring", "configuration", "404"];
 var dataStreamSource;
-var graphData = [[0, 0]];
+var graphData = [[0,0]];
 var g;
 
 document.addEventListener("alpine:init", async () => {
@@ -106,14 +106,17 @@ document.addEventListener("alpine:init", async () => {
   Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
     devices: [],
+    isLoading: false,
+    error: null,
+    resetGraph() {
+      if (g instanceof Dygraph) {
+        g.destroy();
+      }
+    },
     async init() {
       try {
         this.$store.app.currentPage = "loading";
         this.devices = await api.get("/modbus/devices");
-        // window.intervalId = setInterval(() => {
-        //   graphData.push([new Date(), Math.random()]);
-        //   g.updateOptions({ file: graphData });
-        // }, 500);
       } catch (error) {
         this.$store.app.error = error;
       } finally {
@@ -121,6 +124,14 @@ document.addEventListener("alpine:init", async () => {
       }
     },
     selectDevice(device) {
+      if (device.id === this.selectedDevice?.id)  return;
+
+      this.selectedDevice = device;
+      this.resetGraph();
+      
+      // if (device.g_display_reg_addr !== null) 
+        this.isLoading = true;
+      
       dataStreamSource?.close();
       dataStreamSource = new EventSource(`/api/modbus/data_stream?slave_id=${device.id}`);
       g = new Dygraph(document.getElementById("div_g"), graphData, {
@@ -130,15 +141,19 @@ document.addEventListener("alpine:init", async () => {
         // valueRange: [0, 1000],
         // labels: ["Time", "Random"],
       });
+      g.resize(720, 300);
+      dataStreamSource.onerror = (e) => {
+        dataStreamSource.close();
+      }
       dataStreamSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
         console.log(data);
         graphData.push([new Date(), data.graph.value]);
         g.updateOptions({ file: graphData });
+        data.displayValues.forEach((v, i) => this.selectedDevice.display_values[i] = v);
+        this.isLoading = false;
       };
-      if (device.id === this.selectedDevice?.id) return;
-      graphData = []; // todo: reset graph
-      this.selectedDevice = device;
+      graphData = [];
     },
     async removeDevice(id) {
       try {
