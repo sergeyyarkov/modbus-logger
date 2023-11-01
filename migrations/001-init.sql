@@ -21,10 +21,9 @@ CREATE TABLE IF NOT EXISTS "app_config" (
 CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"id" INTEGER CHECK (id >= 1 AND id <= 255),
 	"name" VARCHAR(256) NOT NULL,
-	-- Holding register
 	"g_display_reg_addr" INTEGER CHECK(g_display_reg_addr >= 0 AND g_display_reg_addr <= 65534) DEFAULT NULL, 
-	-- Use 1 or 2 bytes
-	"g_display_reg_format" INTEGER CHECK(g_display_reg_format IN(16, 32)) DEFAULT 16,
+	"g_display_reg_type" VARCHAR(3) CHECK(g_display_reg_type, IN("HR", "IR")) DEFAULT "HR",
+	"g_display_reg_format" VARCHAR(5) CHECK(g_display_reg_format IN("UI16", "I16", "UI32", "I32", "FP32")) DEFAULT "UI16",
 	"g_y_label" VARCHAR(40) DEFAULT "Label",
 	"is_logging" BOOLEAN NOT NULL DEFAULT FALSE,
 	PRIMARY KEY("id")
@@ -58,9 +57,9 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 INSERT INTO "modbus_slaves" (
 	"id", "name", "g_display_reg_addr", "g_display_reg_format", "g_y_label", "is_logging"
 ) VALUES
-	(1, "Device #1", 0, 16, "Label 1", 1),
-	(2, "Device #2", 1, 32, "Label 2", 1),
-	(3, "Device #3", 3, 16, "Label 3", 0),
+	(1, "Device #1", 0, "UI16", "Label 1", 1),
+	(2, "Device #2", 1, "UI32", "Label 2", 1),
+	(3, "Device #3", 3, "UI16", "Label 3", 0),
 	(4, "Device #4", NULL, NULL, "Label 4", 0);
 
 INSERT INTO "display_values" (

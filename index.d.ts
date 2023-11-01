@@ -10,3 +10,23 @@ export type AppConfig = {
   log_interval_ms: number;
 };
 
+export type NumberType = 'UI16' | 'I16' | 'UI32' | 'I32' | 'FP32'
+
+export type DisplayValue = {
+  data?: number;
+  id: number;
+  name: string;
+  slave_id: number;
+  reg_addr: number;
+  reg_format: number;
+}
+
+export type ModbusDevice = {
+  id: number;
+  name: string;
+  g_display_reg_addr: number | null;
+  g_display_reg_format: NumberType | null;
+  g_y_label: string | null;
+  is_logging: boolean;
+  display_values?: DisplayValue[]
+}

@@ -5,8 +5,8 @@ import * as utils from "./utils/index.js";
 
 var pages = ["loading", "monitoring", "configuration", "404"];
 var dataStreamSource;
-var graphData = [[0,0]];
-var g;
+var graphData = [];
+var g = null;
 
 document.addEventListener("alpine:init", async () => {
   Alpine.store("app", {
@@ -62,11 +62,12 @@ document.addEventListener("alpine:init", async () => {
     isOpen: false,
     isLoading: false,
     error: null,
+    graphView: '',
     data: {
       id: null,
       name: "",
       g_display_reg_addr: null,
-      g_display_reg_format: 16,
+      g_display_reg_format: "UI16",
       g_y_label: "",
       is_logging: false,
     },
@@ -74,7 +75,7 @@ document.addEventListener("alpine:init", async () => {
       this.data.id = null;
       this.data.name = "";
       this.data.g_display_reg_addr = null;
-      this.data.g_display_reg_format = 16;
+      this.data.g_display_reg_format = "UI16";
       this.data.g_y_label = "";
       this.data.is_logging = false;
     },
@@ -83,7 +84,6 @@ document.addEventListener("alpine:init", async () => {
         this.isLoading = true;
         this.error = null;
         await api.post("/modbus/create_device", utils.dellNullableKeys({ ...this.data }));
-        graphData = []; // todo: update graph data
         this.$dispatch("add-device", { ...this.data }); // add device to state
         this.resetDataFields();
         this.close();
@@ -100,6 +100,8 @@ document.addEventListener("alpine:init", async () => {
     },
     close() {
       this.isOpen = false;
+      this.resetDataFields();
+      this.graphView = '';
     },
   }));
 
@@ -111,6 +113,8 @@ document.addEventListener("alpine:init", async () => {
     resetGraph() {
       if (g instanceof Dygraph) {
         g.destroy();
+        graphData = [];
+        g = null;
       }
     },
     async init() {
@@ -125,7 +129,8 @@ document.addEventListener("alpine:init", async () => {
     },
     selectDevice(device) {
       if (device.id === this.selectedDevice?.id)  return;
-
+      
+      this.error = null;
       this.selectedDevice = device;
       this.resetGraph();
       
@@ -134,26 +139,29 @@ document.addEventListener("alpine:init", async () => {
       
       dataStreamSource?.close();
       dataStreamSource = new EventSource(`/api/modbus/data_stream?slave_id=${device.id}`);
-      g = new Dygraph(document.getElementById("div_g"), graphData, {
-        drawPoints: false,
-        showRoller: false,
-        ylabel: device.g_y_label,
-        // valueRange: [0, 1000],
-        // labels: ["Time", "Random"],
-      });
-      g.resize(720, 300);
       dataStreamSource.onerror = (e) => {
         dataStreamSource.close();
+        this.isLoading = false;
+        this.error = { message: 'Something went wrong.' }
       }
       dataStreamSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log(data);
-        graphData.push([new Date(), data.graph.value]);
-        g.updateOptions({ file: graphData });
+
+        if (data.graph !== null) {
+          graphData.push([new Date(), data.graph.value]);
+          if (g === null) {
+            g = new Dygraph(document.getElementById("div_g"), graphData, {
+              drawPoints: false,
+              showRoller: false,
+              ylabel: device.g_y_label,
+            });
+            g.resize(720, 300);
+          }
+          g.updateOptions({ file: graphData });
+        }
         data.displayValues.forEach((v, i) => this.selectedDevice.display_values[i] = v);
         this.isLoading = false;
       };
-      graphData = [];
     },
     async removeDevice(id) {
       try {

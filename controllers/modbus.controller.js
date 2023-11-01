@@ -1,6 +1,7 @@
 import db from "#root/config/database.config.js";
 import modbusClient from "#root/config/modbus-client.config.js";
-import { appService } from "#root/services/index.js";
+import * as utils from '#root/utils/index.js'
+import { appService, modbusService } from "#root/services/index.js";
 
 export const modbusController = {
   /**
@@ -204,49 +205,35 @@ export const modbusController = {
   async streamData(req, res, next) {
     try {
       if (!modbusClient.isOpen) return res.status(503).json({ error: { message: "Modbus connection closed." } });
+      
+      const { slave_id } = req.query;
+      
+      if (!slave_id) 
+        return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
+      
+      const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
+      
+      if (!device) 
+        return res.status(404).json({ error: { message: "Device not found." } });
 
-      if (!req.query.slave_id) return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
-
-      const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [req.query.slave_id]);
-      const displayValues = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [req.query.slave_id])
-
-      if (!device) return res.status(404).json({ error: { message: "Device not found." } });
+      device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id]) 
 
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Connection", "keep-alive");
 
-      let interval = setInterval(async () => {
-      let graphValue = 0;
-      let len = 1; // 16 bits default
-
-      for (const value of displayValues) {
-        value.data = Buffer.from((await modbusClient.readHoldingRegisters(value.reg_addr, 1)).buffer).readUInt16BE();
-      }
-
-        if (device.g_display_reg_format === 32) len = 2;
-        // ...64, 128, 256...
-
-        const result = await modbusClient.readHoldingRegisters(device.g_display_reg_addr, len);
-
-        switch (device.g_display_reg_format) {
-          case 32:
-            graphValue = Buffer.from(result.buffer).readUInt32BE();
-            break;
-          case 16:
-            graphValue = Buffer.from(result.buffer).readUint16BE();
-            break;
-          default:
-            break;
+      const streamInterval = setInterval(async () => {
+        try {
+          const data = await modbusService.readDataFromDevice(device, 'HR');
+          res.write("event: message\n");
+          res.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (error) {
+          clearInterval(streamInterval);
+          next(error);
         }
-
-        res.write("event: message\n");
-        res.write(`data: ${JSON.stringify({ 
-          graph: { value: graphValue, format: device.g_display_reg_format },
-          displayValues
-        })}\n\n`);
       }, 1000);
-      req.on("close", () => clearInterval(interval));
+
+      req.on("close", () => clearInterval(streamInterval));
     } catch (error) {
       next(error);
     }
