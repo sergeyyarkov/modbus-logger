@@ -1,5 +1,5 @@
 import express from "express";
-import pino from "pino-http";
+import httpLogger from "#root/config/logger.config.js";
 
 /**
  * Routers
@@ -13,18 +13,7 @@ import { errorHandlerMiddleware } from "#root/middlewares/index.js";
 
 const app = express();
 
-app.use(
-  pino(
-    process.env.NODE_ENV === "development" && {
-      transport: {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-        },
-      },
-    },
-  ),
-);
+app.use(httpLogger);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use("/api", apiRouter);
