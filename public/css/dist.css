@@ -698,10 +698,6 @@ video {
   margin-top: 1.5rem;
 }
 
-.mt-auto {
-  margin-top: auto;
-}
-
 .block {
   display: block;
 }
@@ -730,8 +726,8 @@ video {
   height: 5rem;
 }
 
-.h-\[720px\] {
-  height: 720px;
+.h-\[300px\] {
+  height: 300px;
 }
 
 .h-full {
@@ -740,10 +736,6 @@ video {
 
 .h-screen {
   height: 100vh;
-}
-
-.h-\[300px\] {
-  height: 300px;
 }
 
 .max-h-\[400px\] {

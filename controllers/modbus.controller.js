@@ -67,7 +67,7 @@ export const modbusController = {
   async list(req, res, next) {
     try {
       const slaves = await db.all(`
-          SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging,
+          SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging,
           CASE
             WHEN COUNT(dv.id) = 0 THEN '[]'
             ELSE '[' || GROUP_CONCAT(
@@ -97,17 +97,18 @@ export const modbusController = {
    */
   async createDevice(req, res, next) {
     try {
-      const { id, name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging } = req.body;
+      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging } = req.body;
       await db.run(
         `INSERT INTO "modbus_slaves" (
                     "id", 
                     "name", 
                     "g_display_reg_addr", 
-                    "g_display_reg_format", 
+                    "g_display_reg_format",
+                    "g_display_reg_type",
                     "g_y_label", 
                     "is_logging") 
-                    VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, name, g_display_reg_addr, g_display_reg_format, g_y_label, is_logging],
+                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging],
       );
       return res.status(200).json({ message: "Device created." });
     } catch (error) {
@@ -216,15 +217,14 @@ export const modbusController = {
       if (!device) 
         return res.status(404).json({ error: { message: "Device not found." } });
 
-      device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id]) 
-
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Connection", "keep-alive");
 
       const streamInterval = setInterval(async () => {
         try {
-          const data = await modbusService.readDataFromDevice(device, 'HR');
+          device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id]) 
+          const data = await modbusService.readDataFromDevice(device, device.g_display_reg_type);
           res.write("event: message\n");
           res.write(`data: ${JSON.stringify(data)}\n\n`);
         } catch (error) {

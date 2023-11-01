@@ -68,6 +68,7 @@ document.addEventListener("alpine:init", async () => {
       name: "",
       g_display_reg_addr: null,
       g_display_reg_format: "UI16",
+      g_display_reg_type: 'IR',
       g_y_label: "",
       is_logging: false,
     },
@@ -76,6 +77,7 @@ document.addEventListener("alpine:init", async () => {
       this.data.name = "";
       this.data.g_display_reg_addr = null;
       this.data.g_display_reg_format = "UI16";
+      this.g_display_reg_type = 'IR';
       this.data.g_y_label = "";
       this.data.is_logging = false;
     },

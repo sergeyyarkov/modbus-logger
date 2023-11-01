@@ -86,8 +86,15 @@
                               <input x-model="data.g_display_reg_addr" :id="$id('g_display_reg_addr')" name="g_display_reg_addr" placeholder="1" type="number" min="0" max="65534" :required="graphView === 'new-value'" />
                             </div>
                             <div>
+                              <label :for="$id('g_display_reg_type')"><span class="text-red-500">*</span>Registers type:</label>
+                              <select x-model="data.g_display_reg_type" :id="$id('g_display_reg_type')" name="g_display_reg_type" :required="graphView === 'new-value'">
+                                <option value="IR">Input Registers</option>
+                                <option value="HR">Holding Registers</option>
+                              </select>
+                            </div>
+                            <div>
                               <label :for="$id('g_display_reg_format')"><span class="text-red-500">*</span>Format (type):</label>
-                              <select x-model="data.g_display_reg_format" :id="$id('g_display_reg_format')" name="g_display_reg_format">
+                              <select x-model="data.g_display_reg_format" :id="$id('g_display_reg_format')" name="g_display_reg_format" :required="graphView === 'new-value'">
                                 <option value="UI16">Unsigned Int 16</option>
                                 <option value="I16">Signed Int 16</option>
                                 <option value="UI32">Unsigned Int 32</option>
@@ -138,6 +145,7 @@
                 <div class="pt-5 border-b flex flex-wrap justify-between items-center pr-6">
                   <div class="mb-2">
                     <h2 x-text="selectedDevice?.name" class="font-bold text-3xl my-2 mr-2"></h2>
+                    <span>ID: <span x-text="selectedDevice?.id"></span></span>
                   </div>
                   <!-- Device create, delete buttons -->
                   <div>
@@ -162,8 +170,9 @@
                 <div x-show="!isLoading && selectedDevice?.g_display_reg_addr !== null" class="mt-4">
                   <div id="div_g" style="width: 720px; height: 300px"></div>
                   <div class="flex space-x-2 mt-2">
-                    <span>Register: <span x-text="selectedDevice?.g_display_reg_addr"></span></span>
-                    <span>Format: <span x-text="selectedDevice?.g_display_reg_format"></span></span>
+                    <span class="italic text-sm">Register: <span x-text="selectedDevice?.g_display_reg_addr"></span>&comma;</span>
+                    <span class="italic text-sm">Format: <span x-text="selectedDevice?.g_display_reg_format"></span>&comma;</span>
+                    <span class="italic text-sm">Register type: <span x-text="selectedDevice?.g_display_reg_type"></span></span>
                   </div>
                   <hr class="my-3" />
                 </div>
