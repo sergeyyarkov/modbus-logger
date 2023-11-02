@@ -264,7 +264,7 @@
       <!-- Configuration content -->
       <template x-if="$store.app.currentPage === 'configuration'">
         <main class="mt-6 mb-2" x-data="configAppPage" x-bind:hidden="$store.app.currentPage !== 'configuration'">
-          <div class="border rounded-sm p-4 max-w-2xl mx-auto">
+          <div class="border rounded-sm p-5 max-w-md mx-auto mb-2">
             <h2 class="text-2xl font-bold">Setup configuration</h2>
             <p class="text-gray-700 italic">
               Fill in the required configuration settings to connect to the Modbus network.
@@ -273,7 +273,7 @@
             <form @submit.prevent="configurateApp()" action="#">
               <div>
                 <div>
-                  <label class="block" for="connection_type">Network type</label>
+                  <label class="block" for="connection_type"><span class="text-red-500">*</span>Network type</label>
                   <select
                     x-model="$store.app.config.mb_connection_type"
                     name="mb_connection_type"
@@ -287,7 +287,7 @@
 
                 <div x-show="$store.app.config.mb_connection_type === 'TCP'" class="flex flex-col space-y-3">
                   <div>
-                    <label for="tcp_ip">IP</label>
+                    <label for="tcp_ip"><span class="text-red-500">*</span>IP</label>
                     <input
                       x-model="$store.app.config.mb_tcp_ip"
                       id="tcp_ip"
@@ -299,7 +299,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_port">Port</label>
+                    <label for="rtu_port"><span class="text-red-500">*</span>Port</label>
                     <input
                       x-model.number="$store.app.config.mb_tcp_port"
                       id="rtu_port"
@@ -313,7 +313,7 @@
 
                 <div x-show="$store.app.config.mb_connection_type === 'RTU'" class="flex flex-col space-y-3">
                   <div>
-                    <label for="rtu_path">Path</label>
+                    <label for="rtu_path"><span class="text-red-500">*</span>Path</label>
                     <input
                       id="rtu_path"
                       name="mb_rtu_path"
@@ -325,7 +325,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_baud">Baud</label>
+                    <label for="rtu_baud"><span class="text-red-500">*</span>Baud</label>
                     <select
                       name="mb_rtu_baud"
                       id="rtu_baud"
@@ -342,7 +342,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_parity">Parity</label>
+                    <label for="rtu_parity"><span class="text-red-500">*</span>Parity</label>
                     <select
                       name="mb_rtu_parity"
                       id="rtu_parity"
@@ -356,7 +356,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_data_bits">Data bits</label>
+                    <label for="rtu_data_bits"><span class="text-red-500">*</span>Data bits</label>
                     <select
                       name="mb_rtu_data_bits"
                       id="rtu_data_bits"
@@ -371,7 +371,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_stop_bits">Stop bits</label>
+                    <label for="rtu_stop_bits"><span class="text-red-500">*</span>Stop bits</label>
                     <select
                       name="mb_rtu_stop_bits"
                       id="rtu_stop_bits"
@@ -386,7 +386,7 @@
               </div>
 
               <div class="mt-2">
-                <label for="rtu_path">Log Interval (ms)</label>
+                <label for="rtu_path"><span class="text-red-500">*</span>Log Interval (ms)</label>
                 <input
                   id="log_interval_ms"
                   name="log_interval_ms"

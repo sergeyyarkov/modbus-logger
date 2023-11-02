@@ -1,6 +1,5 @@
 import db from "#root/config/database.config.js";
 import modbusClient from "#root/config/modbus-client.config.js";
-import * as utils from '#root/utils/index.js'
 import { appService, modbusService } from "#root/services/index.js";
 
 export const modbusController = {
@@ -12,30 +11,10 @@ export const modbusController = {
    */
   async connect(req, res, next) {
     try {
-      const config = await appService.getConfig(db);
-      if (!config) return res.status(400).json({ message: "Application is not configured" });
-
-      if (modbusClient.isOpen) {
-        modbusClient.close(undefined);
-        modbusClient.destroy(undefined);
-      }
-
-      if (config.mb_connection_type === "TCP") {
-        await modbusClient.connectTCP(config.mb_tcp_ip, { port: config.mb_tcp_port });
-        return res.status(200).json({ message: "Connected." });
-      }
-
-      if (config.mb_connection_type === "RTU") {
-        await modbusClient.connectRTU(config.mb_rtu_path, {
-          baudRate: config.mb_rtu_baud,
-          dataBits: config.mb_rtu_data_bits,
-          parity: config.mb_rtu_parity,
-          stopBits: config.mb_rtu_stop_bits,
-        });
-        return res.status(200).json({ message: "Connected." });
-      }
-
-      return res.status(400).json({ message: "Connection type is invalid." });
+      const appConfig = await appService.getConfig();
+      if (!appConfig) return res.status(400).json({ message: "Application is not configured" });
+      await modbusService.connect(appConfig)
+      return res.status(200).json({ message: "Connected." });
     } catch (error) {
       next(error);
     }
@@ -66,25 +45,8 @@ export const modbusController = {
    */
   async list(req, res, next) {
     try {
-      const slaves = await db.all(`
-          SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging,
-          CASE
-            WHEN COUNT(dv.id) = 0 THEN '[]'
-            ELSE '[' || GROUP_CONCAT(
-              JSON_OBJECT(
-                'id', dv.id,
-                'name', dv.name,
-                'reg_addr', dv.reg_addr,
-                'reg_format', dv.reg_format,
-                'reg_type', dv.reg_type
-              ), ', '
-            ) || ']' END AS display_values
-          FROM modbus_slaves AS ms
-          LEFT JOIN display_values AS dv ON dv.slave_id = ms.id
-          GROUP BY ms.id, ms.name;
-      `);
-      slaves.forEach((s) => (s.display_values = JSON.parse(s.display_values)));
-      return res.status(200).json(slaves);
+      const devices = await modbusService.getDevices();
+      return res.status(200).json(devices);
     } catch (error) {
       next(error);
     }
@@ -217,6 +179,8 @@ export const modbusController = {
       
       if (!device) 
         return res.status(404).json({ error: { message: "Device not found." } });
+
+      // modbusService.createPollInterval(req, res, device).poll(1000);
 
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Content-Type", "text/event-stream");

@@ -1,4 +1,5 @@
 import modbusClient from "#root/config/modbus-client.config.js";
+import db from "#root/config/database.config.js";
 import * as utils from '#root/utils/index.js'
 
 export const modbusService = {
@@ -36,6 +37,48 @@ export const modbusService = {
   },
 
   /**
+   * @param {import("..").AppConfig} appConfig
+   * @return {Promise<void>}
+   */
+  async connect(appConfig) {
+    const { 
+            mb_connection_type, 
+            mb_tcp_ip, 
+            mb_tcp_port,
+            mb_rtu_path,
+            mb_rtu_baud,
+            mb_rtu_data_bits,
+            mb_rtu_parity,
+            mb_rtu_stop_bits 
+          } = appConfig
+
+    if (modbusClient.isOpen) {
+      modbusClient.close(undefined);
+      modbusClient.destroy(undefined);
+    }
+
+    switch (mb_connection_type) {
+      case 'TCP':
+        {
+          await modbusClient.connectTCP(mb_tcp_ip, { port: mb_tcp_port });
+          break;
+        }
+      case "RTU":
+        {
+          await modbusClient.connectRTU(mb_rtu_path, {
+            baudRate: mb_rtu_baud,
+            dataBits: mb_rtu_data_bits,
+            parity: mb_rtu_parity,
+            stopBits: mb_rtu_stop_bits,
+          });
+          break;
+        }
+      default:
+        throw new Error('Unsupported connection type!')
+    }
+  },
+
+  /**
    * @param {number} addr
    * @param {"HR" | "IR" | "DI"} type
    * @param {import("..").NumberType} format
@@ -70,5 +113,58 @@ export const modbusService = {
     }
   
     return data.buffer;
-  }
+  },
+
+  async getDevices() {
+    /** @type {import("..").ModbusDevice[]}  */
+    const devices = await db.all(`
+        SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging,
+        CASE
+          WHEN COUNT(dv.id) = 0 THEN '[]'
+          ELSE '[' || GROUP_CONCAT(
+            JSON_OBJECT(
+              'id', dv.id,
+              'name', dv.name,
+              'reg_addr', dv.reg_addr,
+              'reg_format', dv.reg_format,
+              'reg_type', dv.reg_type
+            ), ', '
+          ) || ']' END AS display_values
+        FROM modbus_slaves AS ms
+        LEFT JOIN display_values AS dv ON dv.slave_id = ms.id
+        GROUP BY ms.id, ms.name;
+    `);
+    // @ts-ignore
+    devices.forEach((s) => (s.display_values = JSON.parse(s.display_values)));
+    return devices
+  },
+
+  /**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res 
+   * @param {import("..").ModbusDevice} device
+   */
+  // createPollInterval(req, res, device, pollIntervalMs) {
+  //   let intervalId;
+
+  //   res.setHeader("Cache-Control", "no-cache");
+  //   res.setHeader("Content-Type", "text/event-stream");
+  //   res.setHeader("Connection", "keep-alive");
+
+  //   return {
+  //     /**
+  //      * @param {number} pollIntervalMs
+  //      */
+  //     poll(pollIntervalMs) {
+  //       intervalId = setInterval(async () => {
+  //         device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [device.id]) 
+  //         const data = await modbusService.readDataFromDevice(device);
+  //         res.write("event: message\n");
+  //         res.wriste(`data: ${JSON.stringify(data)}\n\n`);
+  //       }, pollIntervalMs)
+
+  //       req.on("close", () => clearInterval(intervalId));
+  //     }
+  //   }
+  // }
 }

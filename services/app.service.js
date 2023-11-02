@@ -1,10 +1,11 @@
+import db from "#root/config/database.config.js";
+
 export const appService = {
   /**
    * Get configuration of app
-   * @param {import('sqlite').Database} db
    * @returns {Promise<import('../index').AppConfig | undefined>}
    */
-  async getConfig(db) {
+  async getConfig() {
     const data = await db.get(`
           SELECT  "mb_connection_type",
                   "mb_tcp_ip",
