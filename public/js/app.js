@@ -32,10 +32,10 @@ document.addEventListener("alpine:init", async () => {
         const { is_configured } = await api.get("/app/is_configured");
 
         this.is_configured = is_configured;
+        connStatusEventSource.onmessage = (e) => (this.is_opened = e.data === "true");
 
         if (config) this.config = config;
         if (is_configured) {
-          connStatusEventSource.onmessage = (e) => (this.is_opened = e.data === "true");
           await utils.wait(500);
           this.currentPage = "monitoring";
           return;

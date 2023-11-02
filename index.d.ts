@@ -10,6 +10,7 @@ export type AppConfig = {
   log_interval_ms: number;
 };
 
+export type RegisterType = "HR" | "IR" 
 export type NumberType = 'UI16' | 'I16' | 'UI32' | 'I32' | 'FP32'
 
 export type DisplayValue = {
@@ -18,7 +19,8 @@ export type DisplayValue = {
   name: string;
   slave_id: number;
   reg_addr: number;
-  reg_format: number;
+  reg_format: NumberType;
+  reg_type: RegisterType;
 }
 
 export type ModbusDevice = {

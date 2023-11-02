@@ -75,7 +75,8 @@ export const modbusController = {
                 'id', dv.id,
                 'name', dv.name,
                 'reg_addr', dv.reg_addr,
-                'reg_format', dv.reg_format
+                'reg_format', dv.reg_format,
+                'reg_type', dv.reg_type
               ), ', '
             ) || ']' END AS display_values
           FROM modbus_slaves AS ms

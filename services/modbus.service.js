@@ -7,7 +7,7 @@ export const modbusService = {
    * @return {Promise<import("..").EventDataStream>}
    */
   async readDataFromDevice(device) {
-    const { g_display_reg_format, g_display_reg_addr, g_display_reg_type } = device;
+    const { g_display_reg_format, g_display_reg_addr, g_display_reg_type, display_values } = device;
     
     /** @type {import("..").EventDataStream} */
     const data = { graph: null, displayValues: [] };
@@ -16,21 +16,21 @@ export const modbusService = {
     
     /* Read data for graph */
     if (g_display_reg_addr !== null) {
-      const graphValue = await this.readModbusRegisters(g_display_reg_addr, g_display_reg_type, g_display_reg_format);
+      const graphValueBuf = await this.readModbusRegisters(g_display_reg_addr, g_display_reg_type, g_display_reg_format);
       data.graph = {
-        value: utils.readNumberFromBuf(graphValue, device.g_display_reg_format, 'BE'),
+        value: utils.readNumberFromBuf(graphValueBuf, device.g_display_reg_format, 'BE'),
         format: g_display_reg_format
       }
     }
 
     /* Read data for display values */
-    if (device.display_values) {
-      for (const value of device.display_values) {
-        value.data = Buffer.from((await this.readModbusRegisters(value.reg_addr, 'HR', 'UI16'))).readUInt16BE();
+    if (display_values) {
+      for (const v of device.display_values) {
+        const displayValueBuf = await this.readModbusRegisters(v.reg_addr, v.reg_type, v.reg_format)
+        v.data = utils.readNumberFromBuf(displayValueBuf, v.reg_format, 'BE')
+        data.displayValues.push(v);
       }
     }
-
-    data.displayValues = device.display_values;
 
     return data;
   },
@@ -44,10 +44,16 @@ export const modbusService = {
   async readModbusRegisters(addr, type, format) {
     let data;
     let len = 1;
-  
-    if (format.includes('32')) len = 2;
-    if (format.includes('64')) len = 4;
-    if (format.includes('128')) len = 8;
+
+    switch (format) {
+      case 'UI32':
+      case 'I32':
+      case 'FP32':
+        len = 2;
+        break;
+      default:
+        break;
+    }
   
     switch (type) {
       case 'HR':
