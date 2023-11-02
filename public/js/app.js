@@ -62,13 +62,13 @@ document.addEventListener("alpine:init", async () => {
     isOpen: false,
     isLoading: false,
     error: null,
-    graphView: '',
+    graphView: "",
     data: {
       id: null,
       name: "",
       g_display_reg_addr: null,
       g_display_reg_format: "UI16",
-      g_display_reg_type: 'IR',
+      g_display_reg_type: "IR",
       g_y_label: "",
       is_logging: false,
     },
@@ -77,7 +77,7 @@ document.addEventListener("alpine:init", async () => {
       this.data.name = "";
       this.data.g_display_reg_addr = null;
       this.data.g_display_reg_format = "UI16";
-      this.g_display_reg_type = 'IR';
+      this.g_display_reg_type = "IR";
       this.data.g_y_label = "";
       this.data.is_logging = false;
     },
@@ -103,7 +103,7 @@ document.addEventListener("alpine:init", async () => {
     close() {
       this.isOpen = false;
       this.resetDataFields();
-      this.graphView = '';
+      this.graphView = "";
     },
   }));
 
@@ -130,26 +130,27 @@ document.addEventListener("alpine:init", async () => {
       }
     },
     selectDevice(device) {
-      if (device.id === this.selectedDevice?.id)  return;
-      
+      if (device.id === this.selectedDevice?.id) return;
+
       this.error = null;
       this.selectedDevice = device;
       this.resetGraph();
-      
-      // if (device.g_display_reg_addr !== null) 
-        this.isLoading = true;
-      
+
+      // if (device.g_display_reg_addr !== null)
+      this.isLoading = true;
+
       dataStreamSource?.close();
       dataStreamSource = new EventSource(`/api/modbus/data_stream?slave_id=${device.id}`);
       dataStreamSource.onerror = (e) => {
         dataStreamSource.close();
         this.isLoading = false;
-        this.error = { message: 'Something went wrong.' }
-      }
+        this.error = { message: "Something went wrong." };
+      };
       dataStreamSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        console.log('[SSE Message]', data);
+        console.log("[SSE Message]", data);
         if (data.graph !== null) {
+          this.selectedDevice.g_value = data.graph.value;
           graphData.push([new Date(), data.graph.value]);
           if (g === null) {
             g = new Dygraph(document.getElementById("div_g"), graphData, {
@@ -161,7 +162,7 @@ document.addEventListener("alpine:init", async () => {
           }
           g.updateOptions({ file: graphData });
         }
-        data.displayValues.forEach((v, i) => this.selectedDevice.display_values[i] = v);
+        data.displayValues.forEach((v, i) => (this.selectedDevice.display_values[i] = v));
         this.isLoading = false;
       };
     },

@@ -13,7 +13,7 @@ export const modbusController = {
     try {
       const appConfig = await appService.getConfig();
       if (!appConfig) return res.status(400).json({ message: "Application is not configured" });
-      await modbusService.connect(appConfig)
+      await modbusService.connect(appConfig);
       return res.status(200).json({ message: "Connected." });
     } catch (error) {
       next(error);
@@ -60,7 +60,8 @@ export const modbusController = {
    */
   async createDevice(req, res, next) {
     try {
-      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging } = req.body;
+      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging } =
+        req.body;
       await db.run(
         `INSERT INTO "modbus_slaves" (
                     "id", 
@@ -168,37 +169,46 @@ export const modbusController = {
    */
   async streamData(req, res, next) {
     try {
-      if (!modbusClient.isOpen) return res.status(503).json({ error: { message: "Modbus connection closed." } });
-      
       const { slave_id } = req.query;
-      
-      if (!slave_id) 
-        return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
-      
-      const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
-      
-      if (!device) 
-        return res.status(404).json({ error: { message: "Device not found." } });
 
-      // modbusService.createPollInterval(req, res, device).poll(1000);
+      if (!modbusClient.isOpen) return res.status(503).json({ error: { message: "Modbus connection closed." } });
+      if (!slave_id) return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
+
+      const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
+      if (!device) return res.status(404).json({ error: { message: "Device not found." } });
 
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Connection", "keep-alive");
 
-      const streamInterval = setInterval(async () => {
-        try {
-          device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id]) 
-          const data = await modbusService.readDataFromDevice(device);
+      const intervalId = modbusService.startDevicePollInterval(
+        device,
+        (data, error) => {
+          if (error) {
+            next(error);
+            return;
+          }
           res.write("event: message\n");
           res.write(`data: ${JSON.stringify(data)}\n\n`);
-        } catch (error) {
-          clearInterval(streamInterval);
-          next(error);
-        }
-      }, 1000);
+        },
+        1000,
+      );
 
-      req.on("close", () => clearInterval(streamInterval));
+      req.on("close", () => clearInterval(intervalId));
+
+      // const streamInterval = setInterval(async () => {
+      //   try {
+      //     device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id])
+      //     const data = await modbusService.readDataFromDevice(device);
+      //     res.write("event: message\n");
+      //     res.write(`data: ${JSON.stringify(data)}\n\n`);
+      //   } catch (error) {
+      //     clearInterval(streamInterval);
+      //     next(error);
+      //   }
+      // }, 1000);
+
+      // req.on("close", () => clearInterval(streamInterval));
     } catch (error) {
       next(error);
     }

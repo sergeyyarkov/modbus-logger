@@ -1,6 +1,6 @@
 import modbusClient from "#root/config/modbus-client.config.js";
 import db from "#root/config/database.config.js";
-import * as utils from '#root/utils/index.js'
+import * as utils from "#root/utils/index.js";
 
 export const modbusService = {
   /**
@@ -9,26 +9,30 @@ export const modbusService = {
    */
   async readDataFromDevice(device) {
     const { g_display_reg_format, g_display_reg_addr, g_display_reg_type, display_values } = device;
-    
+
     /** @type {import("..").EventDataStream} */
     const data = { graph: null, displayValues: [] };
 
     modbusClient.setID(device.id);
-    
+
     /* Read data for graph */
     if (g_display_reg_addr !== null) {
-      const graphValueBuf = await this.readModbusRegisters(g_display_reg_addr, g_display_reg_type, g_display_reg_format);
+      const graphValueBuf = await this.readModbusRegisters(
+        g_display_reg_addr,
+        g_display_reg_type,
+        g_display_reg_format,
+      );
       data.graph = {
-        value: utils.readNumberFromBuf(graphValueBuf, device.g_display_reg_format, 'BE'),
-        format: g_display_reg_format
-      }
+        value: utils.readNumberFromBuf(graphValueBuf, device.g_display_reg_format, "BE"),
+        format: g_display_reg_format,
+      };
     }
 
     /* Read data for display values */
     if (display_values) {
       for (const v of device.display_values) {
-        const displayValueBuf = await this.readModbusRegisters(v.reg_addr, v.reg_type, v.reg_format)
-        v.data = utils.readNumberFromBuf(displayValueBuf, v.reg_format, 'BE')
+        const displayValueBuf = await this.readModbusRegisters(v.reg_addr, v.reg_type, v.reg_format);
+        v.data = utils.readNumberFromBuf(displayValueBuf, v.reg_format, "BE");
         data.displayValues.push(v);
       }
     }
@@ -41,16 +45,16 @@ export const modbusService = {
    * @return {Promise<void>}
    */
   async connect(appConfig) {
-    const { 
-            mb_connection_type, 
-            mb_tcp_ip, 
-            mb_tcp_port,
-            mb_rtu_path,
-            mb_rtu_baud,
-            mb_rtu_data_bits,
-            mb_rtu_parity,
-            mb_rtu_stop_bits 
-          } = appConfig
+    const {
+      mb_connection_type,
+      mb_tcp_ip,
+      mb_tcp_port,
+      mb_rtu_path,
+      mb_rtu_baud,
+      mb_rtu_data_bits,
+      mb_rtu_parity,
+      mb_rtu_stop_bits,
+    } = appConfig;
 
     if (modbusClient.isOpen) {
       modbusClient.close(undefined);
@@ -58,23 +62,21 @@ export const modbusService = {
     }
 
     switch (mb_connection_type) {
-      case 'TCP':
-        {
-          await modbusClient.connectTCP(mb_tcp_ip, { port: mb_tcp_port });
-          break;
-        }
-      case "RTU":
-        {
-          await modbusClient.connectRTU(mb_rtu_path, {
-            baudRate: mb_rtu_baud,
-            dataBits: mb_rtu_data_bits,
-            parity: mb_rtu_parity,
-            stopBits: mb_rtu_stop_bits,
-          });
-          break;
-        }
+      case "TCP": {
+        await modbusClient.connectTCP(mb_tcp_ip, { port: mb_tcp_port });
+        break;
+      }
+      case "RTU": {
+        await modbusClient.connectRTU(mb_rtu_path, {
+          baudRate: mb_rtu_baud,
+          dataBits: mb_rtu_data_bits,
+          parity: mb_rtu_parity,
+          stopBits: mb_rtu_stop_bits,
+        });
+        break;
+      }
       default:
-        throw new Error('Unsupported connection type!')
+        throw new Error("Unsupported connection type!");
     }
   },
 
@@ -89,29 +91,29 @@ export const modbusService = {
     let len = 1;
 
     switch (format) {
-      case 'UI32':
-      case 'I32':
-      case 'FP32':
+      case "UI32":
+      case "I32":
+      case "FP32":
         len = 2;
         break;
       default:
         break;
     }
-  
+
     switch (type) {
-      case 'HR':
-        data = await modbusClient.readHoldingRegisters(addr, len);  
+      case "HR":
+        data = await modbusClient.readHoldingRegisters(addr, len);
         break;
-      case 'IR':
+      case "IR":
         data = await modbusClient.readInputRegisters(addr, len);
         break;
-      case 'DI':
+      case "DI":
         data = await modbusClient.readDiscreteInputs(addr, len);
         break;
       default:
-        throw new Error('Incorrect modbus register type!');
+        throw new Error("Incorrect modbus register type!");
     }
-  
+
     return data.buffer;
   },
 
@@ -136,35 +138,24 @@ export const modbusService = {
     `);
     // @ts-ignore
     devices.forEach((s) => (s.display_values = JSON.parse(s.display_values)));
-    return devices
+    return devices;
   },
 
   /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res 
    * @param {import("..").ModbusDevice} device
+   * @param {(data: import("..").EventDataStream, error: any) => void} callback
+   * @param {number} intervalMs
    */
-  // createPollInterval(req, res, device, pollIntervalMs) {
-  //   let intervalId;
-
-  //   res.setHeader("Cache-Control", "no-cache");
-  //   res.setHeader("Content-Type", "text/event-stream");
-  //   res.setHeader("Connection", "keep-alive");
-
-  //   return {
-  //     /**
-  //      * @param {number} pollIntervalMs
-  //      */
-  //     poll(pollIntervalMs) {
-  //       intervalId = setInterval(async () => {
-  //         device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [device.id]) 
-  //         const data = await modbusService.readDataFromDevice(device);
-  //         res.write("event: message\n");
-  //         res.wriste(`data: ${JSON.stringify(data)}\n\n`);
-  //       }, pollIntervalMs)
-
-  //       req.on("close", () => clearInterval(intervalId));
-  //     }
-  //   }
-  // }
-}
+  startDevicePollInterval(device, callback, intervalMs) {
+    const poll = async () => {
+      try {
+        device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [device.id]);
+        const data = await this.readDataFromDevice(device);
+        callback(data);
+      } catch (error) {
+        callback(null, error);
+      }
+    };
+    return setInterval(poll, intervalMs);
+  },
+};
