@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"id" INTEGER CHECK (id >= 1 AND id <= 255),
 	"name" VARCHAR(256) NOT NULL,
 	"g_display_reg_addr" INTEGER CHECK(g_display_reg_addr >= 0 AND g_display_reg_addr <= 65534) DEFAULT NULL, 
-	"g_display_reg_type" VARCHAR(3) CHECK(g_display_reg_type IN("HR", "IR")) DEFAULT "HR",
+	"g_display_reg_type" VARCHAR(3) CHECK(g_display_reg_type IN("HR", "IR")) DEFAULT "IR",
 	"g_display_reg_format" VARCHAR(5) CHECK(g_display_reg_format IN("UI16", "I16", "UI32", "I32", "FP32")) DEFAULT "UI16",
 	"g_y_label" VARCHAR(40) DEFAULT "Label",
 	"is_logging" BOOLEAN NOT NULL DEFAULT FALSE,
@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 	"name" VARCHAR(32) NOT NULL,
 	"slave_id" INTEGER NOT NULL,
 	"reg_addr" INTEGER DEFAULT 0 NOT NULL CHECK(reg_addr >= 0 AND reg_addr <= 65534),
+	-- "reg_type" VARCHAR(3) CHECK(reg_type IN("HR", "IR", "DI", "DO")) DEFAULT "IR",
 	"reg_format" INTEGER NOT NULL CHECK(reg_format IN(16, 32)) DEFAULT 16,
 	PRIMARY KEY("id"),
 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE

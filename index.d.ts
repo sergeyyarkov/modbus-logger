@@ -31,3 +31,8 @@ export type ModbusDevice = {
   is_logging: boolean;
   display_values?: DisplayValue[]
 }
+
+export type EventDataStream = {
+  graph: { value: number; format: NumberType } | null;
+  displayValues: DisplayValue[];
+}

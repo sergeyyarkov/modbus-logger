@@ -148,7 +148,7 @@ document.addEventListener("alpine:init", async () => {
       }
       dataStreamSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-
+        console.log('[SSE Message]', data);
         if (data.graph !== null) {
           graphData.push([new Date(), data.graph.value]);
           if (g === null) {

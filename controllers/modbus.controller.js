@@ -224,7 +224,7 @@ export const modbusController = {
       const streamInterval = setInterval(async () => {
         try {
           device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id]) 
-          const data = await modbusService.readDataFromDevice(device, device.g_display_reg_type);
+          const data = await modbusService.readDataFromDevice(device);
           res.write("event: message\n");
           res.write(`data: ${JSON.stringify(data)}\n\n`);
         } catch (error) {
