@@ -116,7 +116,19 @@ export const modbusController = {
    * @param {import('express').Response} res
    * @param {import('express').NextFunction} next
    */
-  async createDisplayValue(req, res, next) {},
+  async createDisplayValue(req, res, next) {
+    try {
+      const { name, slave_id, reg_addr, reg_format, reg_type } = req.body
+      await db.run(`INSERT INTO "display_values" 
+                    ("name", "slave_id", "reg_addr", "reg_format", "reg_type") 
+                    VALUES (?, ?, ?, ?, ?)
+                  `, [name, slave_id, reg_addr, reg_format, reg_type]
+                  );
+      return res.status(200).json({ message: 'Created.' });
+    } catch (error) {
+      next(error);
+    }
+  },
 
   /**
    * Remove display value from modbus slave device
@@ -132,14 +144,6 @@ export const modbusController = {
       next(error);
     }
   },
-
-  /**
-   * Get latest data log from modbus slave device
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   * @param {import('express').NextFunction} next
-   */
-  async getLatestLog(req, res, next) {},
 
   /**
    * Creates event stream aboud modbus connection status

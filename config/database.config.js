@@ -5,5 +5,6 @@ import { open } from "sqlite";
 const sqlite = process.env.NODE_ENV == "development" ? sqlite3.verbose() : sqlite3;
 
 const db = await open({ filename: "./data.db", driver: sqlite.Database });
+await db.run(`PRAGMA foreign_keys = ON`);
 
 export default db;

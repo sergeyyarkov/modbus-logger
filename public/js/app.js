@@ -107,6 +107,49 @@ document.addEventListener("alpine:init", async () => {
     },
   }));
 
+  Alpine.data('displayValueModal', () => ({
+    isOpen: false,
+    isLoading: false,
+    error: null,
+    data: {
+      name: '',
+      reg_addr: 0,
+      reg_type: 'IR',
+      reg_format: 'UI16'
+    },
+    resetDataFields() {
+      this.data.name = '';
+      this.data.reg_addr = 0;
+      this.data.reg_type = 'IR';
+      this.data.reg_format = 'UI16';
+    },
+    async create(selectedDevice) {
+      try {
+        this.isLoading = true;
+        const data = {
+          ...this.data,
+          slave_id: selectedDevice.id
+        }
+        await api.post('/modbus/create_display-value', data);
+        selectedDevice?.display_values?.push(this.data);
+        this.resetDataFields();
+        this.close();
+      } catch (error) {
+        this.error = error;
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    open() {
+      this.isOpen = true;
+    },
+    close() {
+      this.isOpen = false;
+      this.resetDataFields();
+    },
+  }))
+
   Alpine.data("monitoringPage", () => ({
     selectedDevice: null,
     devices: [],

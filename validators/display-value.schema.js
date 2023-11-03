@@ -1,4 +1,4 @@
-import { object, number, boolean, string } from 'yup';
+import { object, number, string } from 'yup';
 
 export const displayValueSchema = object({
   id: number().required(),
@@ -10,3 +10,6 @@ export const displayValueSchema = object({
 })
 
 export const removeDisplayValueSchema = displayValueSchema.pick(['id']);
+
+// TODO: On creating "reg_format" can be BOOL if "reg_type" is "DI" or "DO"
+export const createDisplayValueSchema = displayValueSchema.omit(['id'])

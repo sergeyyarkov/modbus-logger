@@ -21,7 +21,7 @@
       <template x-if="$store.app.currentPage === 'monitoring'">
         <main x-data="monitoringPage" class="flex-1" x-bind:hidden="$store.app.currentPage !== 'monitoring'">
           <div class="flex h-full flex-row space-x-2">
-            <div class="border-r min-w-[256px] p-2.5 pl-0 pt-5">
+            <div class="border-r fixed h-screen min-w-[256px] p-2.5 pl-0 pt-5">
               <div class="flex flex-col space-y-1">
                 <!-- List of devices -->
                 <span class="italic text-sm">Devices:</span>
@@ -209,7 +209,7 @@
                 </div>
               </div>
             </div>
-            <div class="flex-auto pl-2">
+            <div class="flex-auto pl-[260px]">
               <div x-show="selectedDevice != null">
                 <div class="pt-5 border-b flex flex-wrap justify-between items-center pr-6">
                   <div class="mb-2">
@@ -301,11 +301,11 @@
                               <!-- Remove display value -->
                               <button
                                 @click="$dispatch('dialog', { 
-                                title: 'Remove display value', 
-                                body: `Remove display value ${value.name}?`,
-                                isOpen: true,
-                                onConfirm: async () => await removeDisplayValue(value.id)
-                              });"
+                                  title: 'Remove display value', 
+                                  body: `Remove display value ${value.name}?`,
+                                  isOpen: true,
+                                  onConfirm: async () => await removeDisplayValue(value.id)
+                                });"
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                   <path
@@ -328,13 +328,113 @@
                           </div>
                         </div>
                       </template>
-                      <!-- Create Display -->
-                      <div
+                      <!-- Create Display Value -->
+                      <button
                         @click="$dispatch('open-create-display-value-modal')"
                         class="flex justify-center min-h-[140px] items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
                       >
                         <span class="text-5xl text-gray-400 font-bold select-none">+</span>
-                      </div>
+                      </button>
+                      <!-- MODAL: Create new display value -->
+                      <template x-teleport="body">
+                        <div
+                          x-data="displayValueModal"
+                          @open-create-display-value-modal.window="open()"
+                          @keyup.escape.window="close()"
+                          class="backdrop z-50"
+                          x-show="isOpen"
+                        >
+                          <div class="modal">
+                            <div class="flex justify-between items-center">
+                              <h2 class="font-bold text-lg">Create new display value</h2>
+                              <button @click="close()" aria-label="Close">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                  <path
+                                    fill="currentColor"
+                                    d="M6.4 19L5 17.6l5.6-5.6L5 6.4L6.4 5l5.6 5.6L17.6 5L19 6.4L13.4 12l5.6 5.6l-1.4 1.4l-5.6-5.6L6.4 19Z"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                            <hr />
+                            <form @submit.prevent="create(selectedDevice)" action="#">
+                              <div 
+                                x-id="['name', 'reg_addr', 'reg_type', 'reg_format']"
+                                class="flex flex-col space-y-2"
+                              >
+                                <div>
+                                  <label :for="$id('name')"><span class="text-red-500">*</span>Name:</label>
+                                  <input
+                                    x-model="data.name"
+                                    :id="$id('name')"
+                                    name="name"
+                                    placeholder="Value Name"
+                                    type="text"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label :for="$id('reg_addr')"><span class="text-red-500">*</span>Register Address:</label>
+                                  <input
+                                    x-model.number="data.reg_addr"
+                                    :id="$id('reg_addr')"
+                                    name="reg_addr"
+                                    placeholder="0"
+                                    type="number"
+                                    min="0"
+                                    max="65534"
+                                    required
+                                  />
+                                </div>
+                                <div>
+                                  <label :for="$id('reg_type')"><span class="text-red-500">*</span>Registers Type:</label>
+                                  <select
+                                    x-model="data.reg_type"
+                                    :id="$id('reg_type')"
+                                    name="reg_type"
+                                    required
+                                  >
+                                    <option value="IR">Input Registers</option>
+                                    <option value="HR">Holding Registers</option>
+                                    <option value="DI">Discrete Inputs</option>
+                                    <option value="DO">Coils</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label :for="$id('reg_format')"><span class="text-red-500">*</span>Format (type):</label>
+                                  <select
+                                    x-model="data.reg_format"
+                                    :id="$id('reg_format')"
+                                    name="reg_format"
+                                    required
+                                  >
+                                    <option value="UI16">Unsigned Int 16</option>
+                                    <option value="I16">Signed Int 16</option>
+                                    <option value="UI32">Unsigned Int 32</option>
+                                    <option value="I32">Signed Int 32</option>
+                                    <option value="FP32">Floating Point 32</option>
+                                    <option value="BOOL">Boolean</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div>
+                                <span x-text="error?.message" class="text-red-500"></span>
+                              </div>
+                              <div class="mt-4 flex justify-end space-x-2">
+                                <button
+                                  x-bind:disabled="isLoading"
+                                  x-bind:class="isLoading && 'opacity-70'"
+                                  type="submit"
+                                  class="btn"
+                                >
+                                  Create
+                                </button>
+                                <button @click="close()" class="btn bg-red-500">Cancel</button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </div>
