@@ -18,4 +18,6 @@ export function readNumberFromBuf(buf, type, order) {
   if (type === 'UI32' && order === 'LE') return Buffer.from(buf).readUint32LE();
   if (type === 'I32' && order === 'LE') return Buffer.from(buf).readInt32LE();
   if (type === 'FP32' && order === 'LE') return Buffer.from(buf).readFloatLE();
+
+  if (type === 'BOOL') return Buffer.from(buf).readUint8();
 }

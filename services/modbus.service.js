@@ -82,7 +82,7 @@ export const modbusService = {
 
   /**
    * @param {number} addr
-   * @param {"HR" | "IR" | "DI"} type
+   * @param {import("..").RegisterType} type
    * @param {import("..").NumberType} format
    * @return {Promise<Buffer>} buffer data
    */
@@ -108,7 +108,10 @@ export const modbusService = {
         data = await modbusClient.readInputRegisters(addr, len);
         break;
       case "DI":
-        data = await modbusClient.readDiscreteInputs(addr, len);
+        data = await modbusClient.readDiscreteInputs(addr, 1);
+        break;
+      case "DO":
+        data = await modbusClient.readCoils(addr, 1);
         break;
       default:
         throw new Error("Incorrect modbus register type!");

@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 	"name" VARCHAR(32) NOT NULL,
 	"slave_id" INTEGER NOT NULL,
 	"reg_addr" INTEGER DEFAULT 0 NOT NULL CHECK(reg_addr >= 0 AND reg_addr <= 65534),
-	"reg_type" VARCHAR(3) NOT NULL CHECK(reg_type IN("HR", "IR")) DEFAULT "IR",
-	"reg_format" VARCHAR(5) NOT NULL CHECK(reg_format IN("UI16", "I16", "UI32", "I32", "FP32")) DEFAULT "UI16",
+	"reg_type" VARCHAR(3) NOT NULL CHECK(reg_type IN("HR", "IR", "DI", "DO")) DEFAULT "IR",
+	"reg_format" VARCHAR(5) NOT NULL CHECK(reg_format IN("UI16", "I16", "UI32", "I32", "FP32", "BOOL")) DEFAULT "UI16",
 	PRIMARY KEY("id"),
 	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
 );
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 -- 	-- JSON Format: 
 -- 	-- {
 -- 	-- 	graph: [{ reg_addr: 1 value: 4 }],
--- 	-- 	display_values: [{ reg_addr: 1, name: "CV1" }]
+-- 	-- 	display_values: [{ ... }]
 -- 	-- }
 -- 	"data" TEXT NOT NULL,
 -- 	PRIMARY KEY("id"),
@@ -74,7 +74,10 @@ INSERT INTO "display_values" (
 	(6, "SP", 2, 15, "UI16", "IR"),
 	(7, "CV1", 3, 16, "UI16", "HR"),
 	(8, "CV2", 3, 17, "FP32", "HR"),
-	(9, "SP", 3, 15, "UI16", "IR");
+	(9, "SP", 3, 15, "UI16", "IR"),
+	(10, "Control action type", 3, 0, "BOOL", "DI"),
+	(11, "Status ALARM1", 3, 1, "BOOL", "DO"),
+	(12, "Status ALARM2", 3, 2, "BOOL", "DO");
 --------------------------------------------------------------------------------
 -- Down
 --------------------------------------------------------------------------------

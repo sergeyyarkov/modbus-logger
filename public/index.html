@@ -287,7 +287,7 @@
                       <template x-for="value in selectedDevice?.display_values" :key="value.id">
                         <div class="border-2 p-2.5 rounded-sm">
                           <div class="flex justify-between items-start">
-                            <h3 x-text="value.name" class="text-xl font-bold"></h3>
+                            <h3 x-text="value.name" class="text-lg font-bold"></h3>
                             <div class="flex">
                               <!-- Edit display value -->
                               <button>
@@ -318,19 +318,19 @@
                           </div>
                           <hr />
                           <div class="flex flex-col">
-                            <span
-                              >Value:
-                              <span
-                                x-text="Number.isInteger(value?.data) ? value?.data : value?.data?.toFixed(3)"
-                              ></span
-                            ></span>
+                            <span>Value:
+                              <span x-show="value?.reg_format === 'BOOL'"><input :value="Boolean(value?.data)" type="checkbox" onclick="return false;" /></span>
+                              <span x-show="value?.reg_format !== 'BOOL'" x-text="Number.isInteger(value?.data) ? value?.data : value?.data?.toFixed(3)"></span>
+                            </span>
                             <span>Reg Addr: <span x-text="value?.reg_addr"></span></span>
                             <span>Reg Type: <span x-text="value?.reg_type"></span></span>
                             <span>Format: <span x-text="value?.reg_format"></span></span>
                           </div>
                         </div>
                       </template>
+                      <!-- Create Display -->
                       <div
+                        @click="$dispatch('open-create-display-value-modal')"
                         class="flex justify-center min-h-[140px] items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
                       >
                         <span class="text-5xl text-gray-400 font-bold select-none">+</span>

@@ -10,8 +10,8 @@ export type AppConfig = {
   log_interval_ms: number;
 };
 
-export type RegisterType = "HR" | "IR" 
-export type NumberType = 'UI16' | 'I16' | 'UI32' | 'I32' | 'FP32'
+export type RegisterType = "HR" | "IR" | "DI" | "DO";
+export type NumberType = 'UI16' | 'I16' | 'UI32' | 'I32' | 'FP32' | 'BOOL';
 
 export type DisplayValue = {
   data?: number;
