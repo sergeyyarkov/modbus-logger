@@ -30,7 +30,6 @@ export type ModbusDevice = {
   g_display_reg_format: NumberType | null;
   g_display_reg_type: "HR" | "IR";
   g_y_label: string | null;
-  is_logging: boolean;
   display_values?: DisplayValue[]
 }
 

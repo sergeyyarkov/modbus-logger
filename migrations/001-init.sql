@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS "modbus_slaves" (
 	"g_display_reg_type" VARCHAR(3) CHECK(g_display_reg_type IN("HR", "IR")) DEFAULT "IR",
 	"g_display_reg_format" VARCHAR(5) CHECK(g_display_reg_format IN("UI16", "I16", "UI32", "I32", "FP32")) DEFAULT "UI16",
 	"g_y_label" VARCHAR(40) DEFAULT "Label",
-	"is_logging" BOOLEAN NOT NULL DEFAULT FALSE,
 	PRIMARY KEY("id")
 );
 
@@ -56,12 +55,12 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 -- )
 
 INSERT INTO "modbus_slaves" (
-	"id", "name", "g_display_reg_addr", "g_display_reg_type", "g_display_reg_format", "g_y_label", "is_logging"
+	"id", "name", "g_display_reg_addr", "g_display_reg_type", "g_display_reg_format", "g_y_label"
 ) VALUES
-	(1, "Device #1", 0, "IR", "UI16", "Label 1", 1),
-	(2, "Device #2", 1, "IR", "UI32", "Label 2", 1),
-	(3, "Device #3", 3, "IR", "UI16", "Label 3", 0),
-	(4, "Device #4", NULL, NULL, NULL, "Label 4", 0);
+	(1, "Device #1", 0, "IR", "UI16", "Label 1"),
+	(2, "Device #2", 1, "IR", "UI32", "Label 2"),
+	(3, "Device #3", 3, "IR", "UI16", "Label 3"),
+	(4, "Device #4", NULL, NULL, NULL, "Label 4");
 
 INSERT INTO "display_values" (
 	"id", "name", "slave_id", "reg_addr", "reg_format", "reg_type"

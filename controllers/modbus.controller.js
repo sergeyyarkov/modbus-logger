@@ -60,7 +60,7 @@ export const modbusController = {
    */
   async createDevice(req, res, next) {
     try {
-      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging } =
+      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label } =
         req.body;
       await db.run(
         `INSERT INTO "modbus_slaves" (
@@ -69,10 +69,9 @@ export const modbusController = {
                     "g_display_reg_addr", 
                     "g_display_reg_format",
                     "g_display_reg_type",
-                    "g_y_label", 
-                    "is_logging") 
+                    "g_y_label") 
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging],
+        [id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label],
       );
       return res.status(200).json({ message: "Device created." });
     } catch (error) {

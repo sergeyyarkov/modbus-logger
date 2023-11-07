@@ -70,7 +70,6 @@ document.addEventListener("alpine:init", async () => {
       g_display_reg_format: "UI16",
       g_display_reg_type: "IR",
       g_y_label: "",
-      is_logging: false,
     },
     resetDataFields() {
       this.data.id = null;
@@ -79,7 +78,6 @@ document.addEventListener("alpine:init", async () => {
       this.data.g_display_reg_format = "UI16";
       this.g_display_reg_type = "IR";
       this.data.g_y_label = "";
-      this.data.is_logging = false;
     },
     async create(cb) {
       try {

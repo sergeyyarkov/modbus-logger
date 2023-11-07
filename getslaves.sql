@@ -4,7 +4,6 @@ SELECT
 		g_display_reg_addr,
 		g_display_reg_format,
 		g_y_label,
-		is_logging,
 		CASE
 			WHEN COUNT(dv.id) = 0 THEN '[]'
 			ELSE '[' || GROUP_CONCAT(

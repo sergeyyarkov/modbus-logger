@@ -123,7 +123,7 @@ export const modbusService = {
   async getDevices() {
     /** @type {import("..").ModbusDevice[]}  */
     const devices = await db.all(`
-        SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label, is_logging,
+        SELECT  ms.id AS id, ms.name AS name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label,
         CASE
           WHEN COUNT(dv.id) = 0 THEN '[]'
           ELSE '[' || GROUP_CONCAT(

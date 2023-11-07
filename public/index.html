@@ -66,7 +66,7 @@
                       <hr />
                       <form @submit.prevent="create(() => graphView = 'none')" action="#">
                         <div
-                          x-id="['id', 'name', 'graph-display', 'g_display_reg_addr', 'g_display_reg_format', 'g_y_label', 'is_logging']"
+                          x-id="['id', 'name', 'graph-display', 'g_display_reg_addr', 'g_display_reg_format', 'g_y_label']"
                           class="flex flex-col space-y-2"
                         >
                           <div>
@@ -157,15 +157,6 @@
                                 <option value="I32">Signed Int 32</option>
                                 <option value="FP32">Floating Point 32</option>
                               </select>
-                            </div>
-                            <div>
-                              <input
-                                x-model="data.is_logging"
-                                :id="$id('is_logging')"
-                                name="is_logging"
-                                type="checkbox"
-                              />
-                              <label :for="$id('is_logging')">Logging</label>
                             </div>
                           </div>
                         </div>
