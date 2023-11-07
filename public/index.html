@@ -46,14 +46,14 @@
                 <template x-teleport="body">
                   <div
                     x-data="deviceModal"
-                    @open-create-device-modal.window="open()"
+                    @open-device-modal.window="open($event)"
                     @keyup.escape.window="close()"
                     class="backdrop z-50"
                     x-show="isOpen"
                   >
                     <div class="modal">
                       <div class="flex justify-between items-center">
-                        <h2 class="font-bold text-lg">Create new device</h2>
+                        <h2 x-text="labels.title" class="font-bold text-lg"></h2>
                         <button @click="close()" aria-label="Close">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                             <path
@@ -64,7 +64,7 @@
                         </button>
                       </div>
                       <hr />
-                      <form @submit.prevent="create(() => graphView = 'none')" action="#">
+                      <form @submit.prevent="submit" action="#">
                         <div
                           x-id="['id', 'name', 'graph-display', 'g_display_reg_addr', 'g_display_reg_format', 'g_y_label']"
                           class="flex flex-col space-y-2"
@@ -167,12 +167,12 @@
                           <button
                             x-bind:disabled="isLoading"
                             x-bind:class="isLoading && 'opacity-70'"
+                            x-text="labels.submit"
                             type="submit"
                             class="btn"
                           >
-                            Create
                           </button>
-                          <button @click="close()" class="btn bg-red-500">Cancel</button>
+                          <button x-text="labels.cancel" @click="close()" class="btn bg-red-500"></button>
                         </div>
                       </form>
                     </div>
@@ -180,7 +180,10 @@
                 </template>
                 <!-- Create new device -->
                 <button
-                  @click="$dispatch('open-create-device-modal')"
+                  @click="$dispatch('open-device-modal', { 
+                    labels: { title: 'Create new device', submit: 'Create', cancel: 'Cancel' },
+                    actionType: 'CREATE'
+                   })"
                   class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer"
                 >
                   <span class="text-4xl text-gray-400 select-none">+</span>
@@ -209,7 +212,13 @@
                   </div>
                   <!-- Device create, delete buttons -->
                   <div>
-                    <a href="#">Edit</a>
+                    <a 
+                      @click="$dispatch('open-device-modal', { 
+                        labels: { title: `Edit device ${selectedDevice?.name}`, submit: 'Save', cancel: 'Cancel' },
+                        device: selectedDevice,
+                        actionType: 'EDIT'
+                      })" 
+                     href="#">Edit</a>
                     <a
                       @click="$dispatch('dialog', { 
                                           title: 'Remove device', 
@@ -569,7 +578,8 @@
                   id="log_interval_ms"
                   name="log_interval_ms"
                   type="number"
-                  min="1000"
+                  min="500"
+                  max="10000"
                   x-model.number="$store.app.config.log_interval_ms"
                   required
                 />

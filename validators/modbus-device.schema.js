@@ -10,3 +10,6 @@ export const modbusDeviceSchema = object({
 });
 
 export const removeModbusDeviceSchema = modbusDeviceSchema.pick(['id']);
+export const editModbusDeviceSchema = modbusDeviceSchema.shape({
+  newId: number().required()
+})

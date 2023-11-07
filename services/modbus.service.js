@@ -147,9 +147,9 @@ export const modbusService = {
   /**
    * @param {import("..").ModbusDevice} device
    * @param {(data: import("..").EventDataStream, error: any) => void} callback
-   * @param {number} intervalMs
    */
-  startDevicePollInterval(device, callback, intervalMs) {
+  async startDevicePollInterval(device, callback) {
+    const { log_interval_ms: intervalMs } = await db.get(`SELECT "log_interval_ms" FROM "app_config"`);
     const poll = async () => {
       try {
         device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [device.id]);
@@ -161,4 +161,11 @@ export const modbusService = {
     };
     return setInterval(poll, intervalMs);
   },
+
+  /**
+   * @param {(isOpen: boolean) => void} callback
+   */
+  startConnectionStatusInterval(callback) {
+    return setInterval(() => callback(modbusClient.isOpen), 500)
+  } 
 };

@@ -1,5 +1,6 @@
 import db from "#root/config/database.config.js";
 import modbusClient from "#root/config/modbus-client.config.js";
+import * as utils from '#root/utils/index.js'
 import { appService, modbusService } from "#root/services/index.js";
 
 export const modbusController = {
@@ -70,7 +71,7 @@ export const modbusController = {
                     "g_display_reg_format",
                     "g_display_reg_type",
                     "g_y_label") 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    VALUES (?, ?, ?, ?, ?, ?)`,
         [id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label],
       );
       return res.status(200).json({ message: "Device created." });
@@ -80,13 +81,47 @@ export const modbusController = {
   },
 
   /**
-   * Remove modbus slave device
+   * Update modbus slave device
    * @param {import('express').Request} req
    * @param {import('express').Response} res
    * @param {import('express').NextFunction} next
    */
   async updateDevice(req, res, next) {
     try {
+      const { 
+        id,
+        newId,
+        name, 
+        g_display_reg_addr, 
+        g_display_reg_type, 
+        g_display_reg_format, 
+        g_y_label 
+      } = req.body;
+
+      await db.run(`UPDATE "modbus_slaves" SET 
+                    id = ?, 
+                    name = ?,
+                    g_display_reg_addr = NULL,
+                    g_display_reg_type = NULL,
+                    g_display_reg_format = NULL,
+                    g_y_label = NULL
+                    WHERE id = ? `, 
+                    [newId, name, id]);
+      
+      if (g_display_reg_addr !== null && 
+          g_display_reg_type !== null && 
+          g_display_reg_format !== null &&
+          g_y_label !== null
+          ) {
+        await db.run(`UPDATE "modbus_slaves" SET 
+                      g_display_reg_addr = ?,
+                      g_display_reg_type = ?,
+                      g_display_reg_format = ?,
+                      g_y_label = ? WHERE id = ?`, 
+                      [g_display_reg_addr, g_display_reg_type, g_display_reg_format, g_y_label, id]);
+      }
+
+      return res.status(200).json({ message: 'Updated.' })
     } catch (error) {
       next(error);
     }
@@ -152,12 +187,8 @@ export const modbusController = {
    */
   async status(req, res, next) {
     try {
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Connection", "keep-alive");
-      let intervalId = setInterval(() => {
-        res.write(`event: message\ndata: ${JSON.stringify(modbusClient.isOpen)}\n\n`);
-      }, 500);
+      utils.setSSEHeaders(res);
+      const intervalId = modbusService.startConnectionStatusInterval((status) => res.write(utils.serializeSSEData(status, 'message')))
       req.on("close", () => clearInterval(intervalId));
     } catch (error) {
       next(error);
@@ -180,38 +211,20 @@ export const modbusController = {
       const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
       if (!device) return res.status(404).json({ error: { message: "Device not found." } });
 
-      res.setHeader("Cache-Control", "no-cache");
-      res.setHeader("Content-Type", "text/event-stream");
-      res.setHeader("Connection", "keep-alive");
+      utils.setSSEHeaders(res);
 
-      const intervalId = modbusService.startDevicePollInterval(
+      const intervalId = await modbusService.startDevicePollInterval(
         device,
         (data, error) => {
           if (error) {
             next(error);
             return;
           }
-          res.write("event: message\n");
-          res.write(`data: ${JSON.stringify(data)}\n\n`);
+          res.write(utils.serializeSSEData(data, 'message'));
         },
-        1000,
       );
 
       req.on("close", () => clearInterval(intervalId));
-
-      // const streamInterval = setInterval(async () => {
-      //   try {
-      //     device.display_values = await db.all(`SELECT * FROM "display_values" WHERE slave_id = ?`, [slave_id])
-      //     const data = await modbusService.readDataFromDevice(device);
-      //     res.write("event: message\n");
-      //     res.write(`data: ${JSON.stringify(data)}\n\n`);
-      //   } catch (error) {
-      //     clearInterval(streamInterval);
-      //     next(error);
-      //   }
-      // }, 1000);
-
-      // req.on("close", () => clearInterval(streamInterval));
     } catch (error) {
       next(error);
     }

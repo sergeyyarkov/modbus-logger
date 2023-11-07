@@ -11,5 +11,5 @@ export const displayValueSchema = object({
 
 export const removeDisplayValueSchema = displayValueSchema.pick(['id']);
 
-// TODO: On creating "reg_format" can be BOOL if "reg_type" is "DI" or "DO"
+// TODO: "reg_format" can be BOOL if "reg_type" is "DI" or "DO"
 export const createDisplayValueSchema = displayValueSchema.omit(['id'])

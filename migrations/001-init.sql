@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "app_config" (
 	"mb_rtu_stop_bits"	INTEGER NOT NULL DEFAULT 1,
 	"log_interval_ms" INTEGER DEFAULT 1000 NOT NULL,
 	CONSTRAINT "id_unique" CHECK(id=0),
-	CONSTRAINT "min_interval_check" CHECK(log_interval_ms >= 1000)
+	CONSTRAINT "min_interval_check" CHECK(log_interval_ms >= 500)
 	PRIMARY KEY("id")
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 	"reg_type" VARCHAR(3) NOT NULL CHECK(reg_type IN("HR", "IR", "DI", "DO")) DEFAULT "IR",
 	"reg_format" VARCHAR(5) NOT NULL CHECK(reg_format IN("UI16", "I16", "UI32", "I32", "FP32", "BOOL")) DEFAULT "UI16",
 	PRIMARY KEY("id"),
-	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE
+	FOREIGN KEY("slave_id") REFERENCES modbus_slaves("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CREATE TABLE IF NOT EXISTS "modbus_log" (

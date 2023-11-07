@@ -64,13 +64,20 @@ document.addEventListener("alpine:init", async () => {
     error: null,
     graphView: "",
     data: {
+      oldId: null,
       id: null,
       name: "",
-      g_display_reg_addr: null,
+      g_display_reg_addr: 0,
       g_display_reg_format: "UI16",
       g_display_reg_type: "IR",
       g_y_label: "",
     },
+    labels: {
+      title: '',
+      submit: '',
+      cancel: ''
+    },
+    actionType: 'CREATE',
     resetDataFields() {
       this.data.id = null;
       this.data.name = "";
@@ -95,7 +102,57 @@ document.addEventListener("alpine:init", async () => {
         this.isLoading = false;
       }
     },
-    open() {
+    async edit() {
+      try {
+        this.isLoading = true;
+        this.error = null;
+        if (this.graphView === 'none') {
+          this.data.g_display_reg_addr = null;
+          this.data.g_display_reg_format = null;
+          this.data.g_display_reg_type = null;
+          this.data.g_y_label = null;
+        }
+        await api.post('/modbus/update_device', utils.dellNullableKeys({ ...this.data, id: this.data.oldId, newId: this.data.id }));
+        window.location.reload();
+      } catch (error) {
+        this.error = error;
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async submit() {
+      switch (this.actionType) {
+        case 'CREATE':
+          await this.create()
+          this.graphView = 'none'
+          break;
+        case 'EDIT':
+          await this.edit()
+          break;
+        default:
+          break;
+      }
+    },
+    open(event) {
+      const { detail } = event;
+      this.labels = { 
+        title: detail.labels.title, 
+        body: detail.labels.body, 
+        submit: detail.labels.submit, 
+        cancel: detail.labels.cancel 
+      };
+      this.actionType = detail.actionType;
+      if (detail.device) {
+        this.data.oldId = detail.device.id;
+        this.data.id = detail.device.id;
+        this.data.name = detail.device.name;
+        this.data.g_display_reg_addr = detail.device.g_display_reg_addr || 0;
+        this.data.g_display_reg_format = detail.device.g_display_reg_format || 'UI16';
+        this.data.g_display_reg_type = detail.device.g_display_reg_type || 'IR';
+        this.data.g_y_label = detail.device.g_y_label || '';
+        if (detail.device.g_display_reg_addr !== null) this.graphView = 'new-value'
+      }
       this.isOpen = true;
     },
     close() {
