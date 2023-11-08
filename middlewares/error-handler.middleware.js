@@ -9,7 +9,7 @@ export function errorHandlerMiddleware() {
     req.log.error(error, "Something went wrong");
     const status = error.statusCode || 500;
     const message = error.message || "Internal Server Error";
-    res.status(500).json({
+    res.status(status).json({
       error: {
         status,
         message,

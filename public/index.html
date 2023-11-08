@@ -21,7 +21,7 @@
       <template x-if="$store.app.currentPage === 'monitoring'">
         <main x-data="monitoringPage" class="flex-1" x-bind:hidden="$store.app.currentPage !== 'monitoring'">
           <div class="flex h-full flex-row space-x-2">
-            <div class="border-r fixed h-screen min-w-[256px] p-2.5 pl-0 pt-5">
+            <div class="border-r fixed bg-white h-screen min-w-[256px] p-2.5 pl-0 pt-5">
               <div class="flex flex-col space-y-1">
                 <!-- List of devices -->
                 <span class="italic text-sm">Devices:</span>
@@ -290,7 +290,12 @@
                             <h3 x-text="value.name" class="text-lg font-bold"></h3>
                             <div class="flex">
                               <!-- Edit display value -->
-                              <button>
+                              <button @click="$dispatch('open-display-value-modal', { 
+                                labels: { title: `Edit ${value.name}`, submit: 'Edit' },
+                                actionType: 'EDIT',
+                                selectedDevice,
+                                displayValue: value
+                               })">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                   <path
                                     fill="#eab308"
@@ -330,23 +335,27 @@
                       </template>
                       <!-- Create Display Value -->
                       <button
-                        @click="$dispatch('open-create-display-value-modal')"
+                        @click="$dispatch('open-display-value-modal', {
+                          labels: { title: 'Create new display value', submit: 'Create' },
+                          actionType: 'CREATE',
+                          selectedDevice,
+                        })"
                         class="flex justify-center min-h-[140px] items-center border-4 text-center border-dashed p-2.5 rounded-sm cursor-pointer hover:bg-gray-50"
                       >
                         <span class="text-5xl text-gray-400 font-bold select-none">+</span>
                       </button>
-                      <!-- MODAL: Create new display value -->
+                      <!-- MODAL: Display value -->
                       <template x-teleport="body">
                         <div
                           x-data="displayValueModal"
-                          @open-create-display-value-modal.window="open()"
+                          @open-display-value-modal.window="open($event)"
                           @keyup.escape.window="close()"
                           class="backdrop z-50"
                           x-show="isOpen"
                         >
                           <div class="modal">
                             <div class="flex justify-between items-center">
-                              <h2 class="font-bold text-lg">Create new display value</h2>
+                              <h2 x-text="labels.title" class="font-bold text-lg"></h2>
                               <button @click="close()" aria-label="Close">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                                   <path
@@ -357,7 +366,7 @@
                               </button>
                             </div>
                             <hr />
-                            <form @submit.prevent="create(selectedDevice)" action="#">
+                            <form @submit.prevent="submit" action="#">
                               <div 
                                 x-id="['name', 'reg_addr', 'reg_type', 'reg_format']"
                                 class="flex flex-col space-y-2"
@@ -424,10 +433,10 @@
                                 <button
                                   x-bind:disabled="isLoading"
                                   x-bind:class="isLoading && 'opacity-70'"
+                                  x-text="labels.submit"
                                   type="submit"
                                   class="btn"
                                 >
-                                  Create
                                 </button>
                                 <button @click="close()" class="btn bg-red-500">Cancel</button>
                               </div>

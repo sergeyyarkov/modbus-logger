@@ -172,23 +172,44 @@ document.addEventListener("alpine:init", async () => {
       reg_type: 'IR',
       reg_format: 'UI16'
     },
+    labels: {
+      title: '',
+      submit: '',
+    },
+    selectedDevice: null,
     resetDataFields() {
       this.data.name = '';
       this.data.reg_addr = 0;
       this.data.reg_type = 'IR';
       this.data.reg_format = 'UI16';
     },
-    async create(selectedDevice) {
+    async create() {
+      this.isLoading = true;
+      const data = { ...this.data, slave_id: this.selectedDevice.id };
+      const result = await api.post('/modbus/create_display-value', data);
+      this.selectedDevice?.display_values?.push(result.data);
+      this.resetDataFields();
+      this.close();
+    },
+    async update() {
+      const data = { ...this.data, slave_id: this.selectedDevice.id };
+      await api.post('/modbus/update_display-value', data);
+      this.resetDataFields();
+      this.close();
+    },
+    async submit() {
       try {
         this.isLoading = true;
-        const data = {
-          ...this.data,
-          slave_id: selectedDevice.id
+        switch (this.actionType) {
+          case 'CREATE':
+            await this.create();
+            break;
+          case 'EDIT':
+            await this.update();
+            break;
+          default:
+            break;
         }
-        await api.post('/modbus/create_display-value', data);
-        selectedDevice?.display_values?.push(this.data);
-        this.resetDataFields();
-        this.close();
       } catch (error) {
         this.error = error;
         console.error(error);
@@ -196,8 +217,19 @@ document.addEventListener("alpine:init", async () => {
         this.isLoading = false;
       }
     },
-    open() {
+    open(event) {
+      const { labels, actionType, selectedDevice, displayValue } = event.detail
       this.isOpen = true;
+      this.labels = { title: labels.title, submit: labels.submit };
+      this.actionType = actionType;
+      this.selectedDevice = selectedDevice;
+      if (displayValue) {
+        this.data.id = displayValue.id;
+        this.data.name = displayValue.name;
+        this.data.reg_addr = displayValue.reg_addr;
+        this.data.reg_format = displayValue.reg_format;
+        this.data.reg_type = displayValue.reg_type;
+      }
     },
     close() {
       this.isOpen = false;

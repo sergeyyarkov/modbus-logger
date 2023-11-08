@@ -1,6 +1,7 @@
 import db from "#root/config/database.config.js";
 import modbusClient from "#root/config/modbus-client.config.js";
 import * as utils from '#root/utils/index.js'
+import { RowNotFoundError } from '#root/errors/index.js'
 import { appService, modbusService } from "#root/services/index.js";
 
 export const modbusController = {
@@ -136,7 +137,7 @@ export const modbusController = {
   async removeDevice(req, res, next) {
     try {
       const device = await db.get(`SELECT id FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
-      if (!device) return res.status(404).json({ message: "Device not found." });
+      if (!device) throw new RowNotFoundError();
       await db.run(`DELETE FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
       return res.status(200).json({ message: "Device removed." });
     } catch (error) {
@@ -158,7 +159,12 @@ export const modbusController = {
                     VALUES (?, ?, ?, ?, ?)
                   `, [name, slave_id, reg_addr, reg_format, reg_type]
                   );
-      return res.status(200).json({ message: 'Created.' });
+      const createdDisplayValue = await db.get(`SELECT * FROM "display_values" WHERE id = last_insert_rowid()`);
+      
+      return res.status(200).json({ 
+        message: 'Created.',
+        data: createdDisplayValue,
+      });
     } catch (error) {
       next(error);
     }
@@ -174,6 +180,30 @@ export const modbusController = {
     try {
       await db.run(`DELETE FROM "display_values" WHERE id = ?`, req.body.id);
       return res.status(200).json({ message: "Display value removed." });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * Update display value
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+   */
+  async updateDisplayValue(req, res, next) {
+    try {
+      const { id, name, slave_id, reg_addr, reg_type, reg_format } = req.body;
+      const row = await db.get(`SELECT id from "display_values" WHERE id = ?`, [id]);
+      if (!row) throw new RowNotFoundError();
+      await db.run(`UPDATE "display_values" SET
+                    name = ?,
+                    slave_id = ?,
+                    reg_addr = ?,
+                    reg_type = ?,
+                    reg_format = ? 
+                    WHERE id = ?`, [name, slave_id, reg_addr, reg_type, reg_format, id]);
+      return res.status(200).json({ message: 'Updated.' });
     } catch (error) {
       next(error);
     }
@@ -209,7 +239,7 @@ export const modbusController = {
       if (!slave_id) return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
 
       const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
-      if (!device) return res.status(404).json({ error: { message: "Device not found." } });
+      if (!device) throw new RowNotFoundError();
 
       utils.setSSEHeaders(res);
 
