@@ -3,6 +3,7 @@ import modbusClient from "#root/config/modbus-client.config.js";
 import * as utils from '#root/utils/index.js'
 import { RowNotFoundError } from '#root/errors/index.js'
 import { appService, modbusService } from "#root/services/index.js";
+import { modbusDeviceModel } from "#root/models/index.js";
 
 export const modbusController = {
   /**
@@ -222,11 +223,9 @@ export const modbusController = {
   async streamData(req, res, next) {
     try {
       const { slave_id } = req.query;
-
-      if (!modbusClient.isOpen) return res.status(503).json({ error: { message: "Modbus connection closed." } });
       if (!slave_id) return res.status(400).json({ error: { message: "'slave_id' parameter is required." } });
 
-      const device = await db.get(`SELECT * FROM "modbus_slaves" WHERE id = ?`, [slave_id]);
+      const device = await modbusDeviceModel.getById(slave_id.toString());
       if (!device) throw new RowNotFoundError();
 
       utils.setSSEHeaders(res);
@@ -235,7 +234,7 @@ export const modbusController = {
         device,
         (data, error) => {
           if (error) {
-            next(error);
+            res.write(utils.serializeSSEData({ error: { message: error.message }}, 'message'))
             return;
           }
           res.write(utils.serializeSSEData(data, 'message'));

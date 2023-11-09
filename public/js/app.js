@@ -272,13 +272,18 @@ document.addEventListener("alpine:init", async () => {
 
       dataStreamSource?.close();
       dataStreamSource = new EventSource(`/api/modbus/data_stream?slave_id=${device.id}`);
-      dataStreamSource.onerror = (e) => {
-        dataStreamSource.close();
-        this.isLoading = false;
-        this.error = { message: "Something went wrong." };
-      };
       dataStreamSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
+
+        if (data.error) {
+          this.isLoading = false;
+          this.error = data.error;
+          console.error('[Modbus Error]:', data.error);
+          return;
+        }
+
+        this.error = null;
+
         console.log("[SSE Message]", data);
         if (data.graph !== null) {
           this.selectedDevice.g_value = data.graph.value;
