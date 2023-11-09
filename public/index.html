@@ -219,10 +219,9 @@
                         actionType: 'EDIT'
                       })" 
                      href="#">Edit</a>
-                    <a
-                      @click="$dispatch('dialog', { 
+                    <a @click="$dispatch('dialog', { 
                                           title: 'Remove device', 
-                                          body: `Remove ${selectedDevice.name}? All logs will be cleared.`,
+                                          body: `Remove ${selectedDevice.name}?`,
                                           isOpen: true,
                                           onConfirm: async () => await removeDevice(selectedDevice.id)
                                         });"

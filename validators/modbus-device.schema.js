@@ -1,4 +1,4 @@
-import { object, number, boolean, string } from 'yup';
+import { object, number, string } from 'yup';
 
 export const modbusDeviceSchema = object({
   id: number().required(),
@@ -12,4 +12,4 @@ export const modbusDeviceSchema = object({
 export const removeModbusDeviceSchema = modbusDeviceSchema.pick(['id']);
 export const editModbusDeviceSchema = modbusDeviceSchema.shape({
   newId: number().required()
-})
+});

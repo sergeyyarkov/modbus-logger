@@ -102,26 +102,13 @@ export const modbusController = {
       await db.run(`UPDATE "modbus_slaves" SET 
                     id = ?, 
                     name = ?,
-                    g_display_reg_addr = NULL,
-                    g_display_reg_type = NULL,
-                    g_display_reg_format = NULL,
-                    g_y_label = NULL
+                    g_display_reg_addr = ?,
+                    g_display_reg_type = ?,
+                    g_display_reg_format = ?,
+                    g_y_label = ?
                     WHERE id = ? `, 
-                    [newId, name, id]);
-      
-      if (g_display_reg_addr !== null && 
-          g_display_reg_type !== null && 
-          g_display_reg_format !== null &&
-          g_y_label !== null
-          ) {
-        await db.run(`UPDATE "modbus_slaves" SET 
-                      g_display_reg_addr = ?,
-                      g_display_reg_type = ?,
-                      g_display_reg_format = ?,
-                      g_y_label = ? WHERE id = ?`, 
-                      [g_display_reg_addr, g_display_reg_type, g_display_reg_format, g_y_label, id]);
-      }
-
+                    [newId, name, g_display_reg_addr, g_display_reg_type, g_display_reg_format, g_y_label, id]);
+    
       return res.status(200).json({ message: 'Updated.' })
     } catch (error) {
       next(error);
@@ -145,6 +132,7 @@ export const modbusController = {
     }
   },
 
+  
   /**
    * Create display value for modbus slave device
    * @param {import('express').Request} req
