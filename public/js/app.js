@@ -25,6 +25,12 @@ document.addEventListener("alpine:init", async () => {
     },
     currentPage: "loading",
     error: null,
+    registersTypesMap: {
+      'IR': 'Input Registers',
+      'HR': 'Holding Registers',
+      "DI": "Discrete Input",
+      "DO": "Coils"
+    },
     async init() {
       try {
         const connStatusEventSource = new EventSource("/api/modbus/status");
@@ -266,8 +272,6 @@ document.addEventListener("alpine:init", async () => {
       this.error = null;
       this.selectedDevice = device;
       this.resetGraph();
-
-      // if (device.g_display_reg_addr !== null)
       this.isLoading = true;
 
       dataStreamSource?.close();

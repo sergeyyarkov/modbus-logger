@@ -3,7 +3,7 @@ import modbusClient from "#root/config/modbus-client.config.js";
 import * as utils from '#root/utils/index.js'
 import { RowNotFoundError } from '#root/errors/index.js'
 import { appService, modbusService } from "#root/services/index.js";
-import { modbusDeviceModel } from "#root/models/index.js";
+import { modbusDeviceModel, displayValueModel } from "#root/models/index.js";
 
 export const modbusController = {
   /**
@@ -63,19 +63,14 @@ export const modbusController = {
    */
   async createDevice(req, res, next) {
     try {
-      const { id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label } =
-        req.body;
-      await db.run(
-        `INSERT INTO "modbus_slaves" (
-                    "id", 
-                    "name", 
-                    "g_display_reg_addr", 
-                    "g_display_reg_format",
-                    "g_display_reg_type",
-                    "g_y_label") 
-                    VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, name, g_display_reg_addr, g_display_reg_format, g_display_reg_type, g_y_label],
-      );
+      await modbusDeviceModel.create({
+        id: req.body.id,
+        name: req.body.name,
+        g_display_reg_addr: req.body.g_display_reg_addr,
+        g_display_reg_format: req.body.g_display_reg_format,
+        g_display_reg_type: req.body.g_display_reg_type,
+        g_y_label: req.body.g_y_label
+      })
       return res.status(200).json({ message: "Device created." });
     } catch (error) {
       next(error);
@@ -124,9 +119,10 @@ export const modbusController = {
    */
   async removeDevice(req, res, next) {
     try {
-      const device = await db.get(`SELECT id FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
+      const { id } = req.body;
+      const device = await modbusDeviceModel.getById(id)
       if (!device) throw new RowNotFoundError();
-      await db.run(`DELETE FROM "modbus_slaves" WHERE id = ?`, [req.body.id]);
+      await modbusDeviceModel.delById(id);
       return res.status(200).json({ message: "Device removed." });
     } catch (error) {
       next(error);
@@ -167,7 +163,10 @@ export const modbusController = {
    */
   async removeDisplayValue(req, res, next) {
     try {
-      await db.run(`DELETE FROM "display_values" WHERE id = ?`, req.body.id);
+      const { id } = req.body;
+      const value = await displayValueModel.getById(id);
+      if (!value) throw new RowNotFoundError();
+      await displayValueModel.delById(id);
       return res.status(200).json({ message: "Display value removed." });
     } catch (error) {
       next(error);
@@ -199,7 +198,7 @@ export const modbusController = {
   },
 
   /**
-   * Creates event stream aboud modbus connection status
+   * Creates event stream about modbus connection status
    * @param {import('express').Request} req
    * @param {import('express').Response} res
    * @param {import('express').NextFunction} next

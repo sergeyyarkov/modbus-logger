@@ -326,9 +326,10 @@
                               <span x-show="value?.reg_format === 'BOOL'"><input :value="Boolean(value?.data)" type="checkbox" onclick="return false;" /></span>
                               <span x-show="value?.reg_format !== 'BOOL'" x-text="Number.isInteger(value?.data) ? value?.data : value?.data?.toFixed(3)"></span>
                             </span>
-                            <span>Reg Addr: <span x-text="value?.reg_addr"></span></span>
-                            <span>Reg Type: <span x-text="value?.reg_type"></span></span>
+                            <span>Addr: <span x-text="value?.reg_addr"></span></span>
+                            <span>Type: <span x-text="$store.app.registersTypesMap[value?.reg_type]"></span></span>
                             <span>Format: <span x-text="value?.reg_format"></span></span>
+                            <span x-show="value.desc" x-text="value?.desc" class="text-sm text-gray-500 italic"></span>
                           </div>
                         </div>
                       </template>

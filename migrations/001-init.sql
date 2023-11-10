@@ -57,26 +57,27 @@ CREATE TABLE IF NOT EXISTS "display_values" (
 INSERT INTO "modbus_slaves" (
 	"id", "name", "g_display_reg_addr", "g_display_reg_type", "g_display_reg_format", "g_y_label"
 ) VALUES
-	(1, "Device #1", 0, "IR", "UI16", "Label 1"),
-	(2, "Device #2", 1, "IR", "UI32", "Label 2"),
-	(3, "Device #3", 3, "IR", "UI16", "Label 3"),
-	(4, "Device #4", NULL, NULL, NULL, "Label 4");
+	(1, "MKP #1", 132, "HR", "UI16", "PID Out"),
+	(2, "Test Device #1", 1, "IR", "UI32", "Label 2"),
+	(3, "Test Device #2", 3, "IR", "UI16", "Label 3"),
+	(4, "Test Device #3", NULL, NULL, NULL, "Label 4");
 
 INSERT INTO "display_values" (
 	"id", "name", "slave_id", "reg_addr", "reg_format", "reg_type"
 ) VALUES
-	(1, "CV1", 1, 10, "UI16", "IR"),
-	(2, "CV2", 1, 11, "I16", "IR"),
-	(3, "SP", 1, 12, "UI32", "IR"),
-	(4, "CV1", 2, 13, "I32", "IR"),
-	(5, "CV2", 2, 14, "I16", "IR"),
-	(6, "SP", 2, 15, "UI16", "IR"),
-	(7, "CV1", 3, 16, "UI16", "HR"),
-	(8, "CV2", 3, 17, "FP32", "HR"),
-	(9, "SP", 3, 15, "UI16", "IR"),
-	(10, "Control action type", 3, 0, "BOOL", "DI"),
-	(11, "Status ALARM1", 3, 1, "BOOL", "DO"),
-	(12, "Status ALARM2", 3, 2, "BOOL", "DO");
+	(1, "SP", 1, 138, "UI32", "HR"),
+	(2, "Status Device", 1, 89, "UI16", "HR"),
+	(3, "Control action type", 1, 2301, "BOOL", "DI"),
+	(4, "S.L.Bd", 1, 528, "UI16", "HR"),
+	(5, "VAL1", 2, 0, "I32", "IR"),
+	(6, "VAL2", 2, 2, "I16", "IR"),
+	(7, "VAL3", 2, 3, "UI16", "IR"),
+	(8, "VAL4", 3, 4, "UI16", "HR"),
+	(9, "VAL5", 3, 5, "FP32", "HR"),
+	(10, "VAL6", 3, 7, "UI16", "IR"),
+	(11, "VAL7", 3, 0, "BOOL", "DI"),
+	(12, "VAL8", 3, 1, "BOOL", "DO"),
+	(13, "VAL9", 3, 2, "BOOL", "DO");
 --------------------------------------------------------------------------------
 -- Down
 --------------------------------------------------------------------------------
