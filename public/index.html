@@ -24,9 +24,9 @@
             <div class="border-r fixed bg-white h-screen min-w-[256px] p-2.5 pl-0 pt-5">
               <div class="flex flex-col space-y-1">
                 <!-- List of devices -->
-                <span class="italic text-sm">Devices:</span>
+                <span class="italic text-sm">Устройства:</span>
                 <span x-show="devices.length === 0" class="text-gray-500 text-sm text-center block">
-                  No devices added.
+                  Устройства не добавлены.
                 </span>
                 <div
                   @add-device.window="devices = [...devices, $event.detail];"
@@ -83,7 +83,7 @@
                             />
                           </div>
                           <div>
-                            <label :for="$id('name')"><span class="text-red-500">*</span>Name:</label>
+                            <label :for="$id('name')"><span class="text-red-500">*</span>Название устройства:</label>
                             <input
                               x-model="data.name"
                               placeholder="Device #1"
@@ -94,15 +94,15 @@
                             />
                           </div>
                           <div>
-                            <label :for="$id('graph-display')">Graph Display</label>
+                            <label :for="$id('graph-display')">Вывод значения на график</label>
                             <select x-model="graphView" :id="$id('graph-display')">
-                              <option value="none">None</option>
-                              <option value="new-value">New value</option>
+                              <option value="none">Нет</option>
+                              <option value="new-value">Новое значение</option>
                             </select>
                           </div>
                           <div x-show="graphView === 'new-value'">
                             <div>
-                              <label :for="$id('g_y_label')"><span class="text-red-500">*</span>Value name:</label>
+                              <label :for="$id('g_y_label')"><span class="text-red-500">*</span>Название значения:</label>
                               <input
                                 x-model="data.g_y_label"
                                 :id="$id('g_y_label')"
@@ -114,7 +114,7 @@
                             </div>
                             <div>
                               <label :for="$id('g_display_reg_addr')"
-                                ><span class="text-red-500">*</span>Register address:</label
+                                ><span class="text-red-500">*</span>Адрес регистра:</label
                               >
                               <input
                                 x-model="data.g_display_reg_addr"
@@ -129,7 +129,7 @@
                             </div>
                             <div>
                               <label :for="$id('g_display_reg_type')"
-                                ><span class="text-red-500">*</span>Registers type:</label
+                                ><span class="text-red-500">*</span>Тип регистра:</label
                               >
                               <select
                                 x-model="data.g_display_reg_type"
@@ -143,7 +143,7 @@
                             </div>
                             <div>
                               <label :for="$id('g_display_reg_format')"
-                                ><span class="text-red-500">*</span>Format (type):</label
+                                ><span class="text-red-500">*</span>Формат значения:</label
                               >
                               <select
                                 x-model="data.g_display_reg_format"
@@ -181,7 +181,7 @@
                 <!-- Create new device -->
                 <button
                   @click="$dispatch('open-device-modal', { 
-                    labels: { title: 'Create new device', submit: 'Create', cancel: 'Cancel' },
+                    labels: { title: 'Добавить новое устройство', submit: 'Добавить', cancel: 'Отмена' },
                     actionType: 'CREATE'
                    })"
                   class="w-full min-h-[50px] text-center border-2 border-dashed rounded-sm hover:bg-gray-50 cursor-pointer"
@@ -192,14 +192,14 @@
               <hr class="my-4" />
               <!-- Connection -->
               <div>
-                <span class="italic text-sm">Connection:</span>
+                <span class="italic text-sm">Соединение:</span>
                 <div class="flex flex-col mt-1.5">
                   <span class="text-sm">
-                    Status:
-                    <b x-show="$store.app.is_opened" class="text-green-700">Opened</b>
-                    <b x-show="!$store.app.is_opened" class="text-red-700">Closed</b>
+                    Статус:
+                    <b x-show="$store.app.is_opened" class="text-green-700">Открыто</b>
+                    <b x-show="!$store.app.is_opened" class="text-red-700">Закрыто</b>
                   </span>
-                  <a class="text-sm" @click="$store.app.setPage('configuration')" href="#"> Reconfigurate </a>
+                  <a class="text-sm" @click="$store.app.setPage('configuration')" href="#">Настройки</a>
                 </div>
               </div>
             </div>
@@ -214,21 +214,21 @@
                   <div>
                     <a 
                       @click="$dispatch('open-device-modal', { 
-                        labels: { title: `Edit device ${selectedDevice?.name}`, submit: 'Save', cancel: 'Cancel' },
+                        labels: { title: `Редактировать устройство ${selectedDevice?.name}`, submit: 'Save', cancel: 'Отмена' },
                         device: selectedDevice,
                         actionType: 'EDIT'
                       })" 
-                     href="#">Edit</a>
+                     href="#">Редактировать</a>
                     <a @click="$dispatch('dialog', { 
-                                          title: 'Remove device', 
-                                          body: `Remove ${selectedDevice.name}?`,
+                                          title: 'Удаление устройства', 
+                                          body: `Удалить ${selectedDevice.name}?`,
                                           isOpen: true,
                                           onConfirm: async () => await removeDevice(selectedDevice.id)
                                         });"
                       class="text-red-500"
                       href="#"
                     >
-                      Delete
+                      Удалить
                     </a>
                   </div>
                 </div>
@@ -241,16 +241,16 @@
                   <div id="div_g" style="width: 720px; height: 300px"></div>
                   <div class="flex justify-evenly space-x-2 mt-3">
                     <span class="italic text-sm"
-                      >Value: <span class="font-bold" x-text="selectedDevice?.g_value"></span
+                      >Значение: <span class="font-bold" x-text="selectedDevice?.g_value"></span
                     ></span>
                     <span class="italic text-sm">
-                      Register: <span x-text="selectedDevice?.g_display_reg_addr"></span
+                      Адрес регистра: <span x-text="selectedDevice?.g_display_reg_addr"></span
                     ></span>
                     <span class="italic text-sm"
-                      >Format: <span x-text="selectedDevice?.g_display_reg_format"></span
+                      >Формат регистра: <span x-text="selectedDevice?.g_display_reg_format"></span
                     ></span>
                     <span class="italic text-sm"
-                      >Register type: <span x-text="selectedDevice?.g_display_reg_type"></span
+                      >Тип регистра: <span x-text="selectedDevice?.g_display_reg_type"></span
                     ></span>
                   </div>
                   <hr class="my-3" />
@@ -275,12 +275,12 @@
                         />
                       </svg>
                     </div>
-                    <p class="mt-4">Loading...</p>
+                    <p class="mt-4">Загрузка...</p>
                   </div>
                 </div>
                 <!-- Display values -->
                 <div x-show="!isLoading">
-                  <h2 class="text-xl font-bold mb-3 mt-5">Display values</h2>
+                  <h2 class="text-xl font-bold mb-3 mt-5">Мониторинг значений</h2>
                   <div class="mb-2">
                     <div class="grid grid-cols-1 md:sm:grid-cols-2 lg:sm:grid-cols-3 gap-2">
                       <template x-for="value in selectedDevice?.display_values" :key="value.id">
@@ -290,7 +290,7 @@
                             <div class="flex">
                               <!-- Edit display value -->
                               <button @click="$dispatch('open-display-value-modal', { 
-                                labels: { title: `Edit ${value.name}`, submit: 'Edit' },
+                                labels: { title: `Редактировать значение ${value.name}`, submit: 'Сохранить' },
                                 actionType: 'EDIT',
                                 selectedDevice,
                                 displayValue: value
@@ -322,13 +322,13 @@
                           </div>
                           <hr />
                           <div class="flex flex-col">
-                            <span>Value:
+                            <span>Значение:
                               <span x-show="value?.reg_format === 'BOOL'"><input :value="Boolean(value?.data)" type="checkbox" onclick="return false;" /></span>
                               <span x-show="value?.reg_format !== 'BOOL'" x-text="Number.isInteger(value?.data) ? value?.data : value?.data?.toFixed(3)"></span>
                             </span>
-                            <span>Addr: <span x-text="value?.reg_addr"></span></span>
-                            <span>Type: <span x-text="$store.app.registersTypesMap[value?.reg_type]"></span></span>
-                            <span>Format: <span x-text="value?.reg_format"></span></span>
+                            <span>Адрес: <span x-text="value?.reg_addr"></span></span>
+                            <span>Тип: <span x-text="$store.app.registersTypesMap[value?.reg_type]"></span></span>
+                            <span>Формат: <span x-text="value?.reg_format"></span></span>
                             <span x-show="value.desc" x-text="value?.desc" class="text-sm text-gray-500 italic"></span>
                           </div>
                         </div>
@@ -336,7 +336,7 @@
                       <!-- Create Display Value -->
                       <button
                         @click="$dispatch('open-display-value-modal', {
-                          labels: { title: 'Create new display value', submit: 'Create' },
+                          labels: { title: 'Добавить новое значение', submit: 'Добавить' },
                           actionType: 'CREATE',
                           selectedDevice,
                         })"
@@ -372,18 +372,18 @@
                                 class="flex flex-col space-y-2"
                               >
                                 <div>
-                                  <label :for="$id('name')"><span class="text-red-500">*</span>Name:</label>
+                                  <label :for="$id('name')"><span class="text-red-500">*</span>Название:</label>
                                   <input
                                     x-model="data.name"
                                     :id="$id('name')"
                                     name="name"
-                                    placeholder="Value Name"
+                                    placeholder="PV"
                                     type="text"
                                     required
                                   />
                                 </div>
                                 <div>
-                                  <label :for="$id('reg_addr')"><span class="text-red-500">*</span>Register Address:</label>
+                                  <label :for="$id('reg_addr')"><span class="text-red-500">*</span>Адрес регистра:</label>
                                   <input
                                     x-model.number="data.reg_addr"
                                     :id="$id('reg_addr')"
@@ -396,7 +396,7 @@
                                   />
                                 </div>
                                 <div>
-                                  <label :for="$id('reg_type')"><span class="text-red-500">*</span>Registers Type:</label>
+                                  <label :for="$id('reg_type')"><span class="text-red-500">*</span>Тип регистра:</label>
                                   <select
                                     x-model="data.reg_type"
                                     :id="$id('reg_type')"
@@ -410,7 +410,7 @@
                                   </select>
                                 </div>
                                 <div>
-                                  <label :for="$id('reg_format')"><span class="text-red-500">*</span>Format (type):</label>
+                                  <label :for="$id('reg_format')"><span class="text-red-500">*</span>Формат значения:</label>
                                   <select
                                     x-model="data.reg_format"
                                     :id="$id('reg_format')"
@@ -438,7 +438,7 @@
                                   class="btn"
                                 >
                                 </button>
-                                <button @click="close()" class="btn bg-red-500">Cancel</button>
+                                <button @click="close()" class="btn bg-red-500">Отмена</button>
                               </div>
                             </form>
                           </div>
@@ -449,7 +449,7 @@
                 </div>
               </div>
               <div class="select-none" x-show="selectedDevice === null">
-                <span class="block text-center italic text-gray-500 mt-10">No device selected.</span>
+                <span class="block text-center italic text-gray-500 mt-10">Устройство не выбрано.</span>
               </div>
             </div>
             <!-- <div class="border-l"></div> -->
@@ -461,15 +461,12 @@
       <template x-if="$store.app.currentPage === 'configuration'">
         <main class="mt-6 mb-2" x-data="configAppPage" x-bind:hidden="$store.app.currentPage !== 'configuration'">
           <div class="border rounded-sm p-5 max-w-md mx-auto mb-2">
-            <h2 class="text-2xl font-bold">Setup configuration</h2>
-            <p class="text-gray-700 italic">
-              Fill in the required configuration settings to connect to the Modbus network.
-            </p>
+            <h2 class="text-2xl font-bold">Настройки соединения</h2>
             <hr />
             <form @submit.prevent="configurateApp()" action="#">
               <div>
-                <div>
-                  <label class="block" for="connection_type"><span class="text-red-500">*</span>Network type</label>
+                <div class="mb-3">
+                  <label class="block" for="connection_type"><span class="text-red-500">*</span>Тип сети</label>
                   <select
                     x-model="$store.app.config.mb_connection_type"
                     name="mb_connection_type"
@@ -483,7 +480,7 @@
 
                 <div x-show="$store.app.config.mb_connection_type === 'TCP'" class="flex flex-col space-y-3">
                   <div>
-                    <label for="tcp_ip"><span class="text-red-500">*</span>IP</label>
+                    <label for="tcp_ip"><span class="text-red-500">*</span>IP адрес</label>
                     <input
                       x-model="$store.app.config.mb_tcp_ip"
                       id="tcp_ip"
@@ -495,7 +492,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_port"><span class="text-red-500">*</span>Port</label>
+                    <label for="rtu_port"><span class="text-red-500">*</span>Порт</label>
                     <input
                       x-model.number="$store.app.config.mb_tcp_port"
                       id="rtu_port"
@@ -509,7 +506,7 @@
 
                 <div x-show="$store.app.config.mb_connection_type === 'RTU'" class="flex flex-col space-y-3">
                   <div>
-                    <label for="rtu_path"><span class="text-red-500">*</span>Path</label>
+                    <label for="rtu_path"><span class="text-red-500">*</span>Порт</label>
                     <input
                       id="rtu_path"
                       name="mb_rtu_path"
@@ -521,7 +518,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_baud"><span class="text-red-500">*</span>Baud</label>
+                    <label for="rtu_baud"><span class="text-red-500">*</span>Скорость (бит/с)</label>
                     <select
                       name="mb_rtu_baud"
                       id="rtu_baud"
@@ -538,7 +535,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_parity"><span class="text-red-500">*</span>Parity</label>
+                    <label for="rtu_parity"><span class="text-red-500">*</span>Бит четности</label>
                     <select
                       name="mb_rtu_parity"
                       id="rtu_parity"
@@ -547,12 +544,12 @@
                     >
                       <option value="even">even</option>
                       <option value="odd">odd</option>
-                      <option value="none">none</option>
+                      <option value="none">нет</option>
                     </select>
                   </div>
 
                   <div>
-                    <label for="rtu_data_bits"><span class="text-red-500">*</span>Data bits</label>
+                    <label for="rtu_data_bits"><span class="text-red-500">*</span>Кол-во битов данных</label>
                     <select
                       name="mb_rtu_data_bits"
                       id="rtu_data_bits"
@@ -567,7 +564,7 @@
                   </div>
 
                   <div>
-                    <label for="rtu_stop_bits"><span class="text-red-500">*</span>Stop bits</label>
+                    <label for="rtu_stop_bits"><span class="text-red-500">*</span>Стоповых бит</label>
                     <select
                       name="mb_rtu_stop_bits"
                       id="rtu_stop_bits"
@@ -582,7 +579,7 @@
               </div>
 
               <div class="mt-2">
-                <label for="rtu_path"><span class="text-red-500">*</span>Log Interval (ms)</label>
+                <label for="rtu_path"><span class="text-red-500">*</span>Интервал опроса (мс)</label>
                 <input
                   id="log_interval_ms"
                   name="log_interval_ms"
@@ -602,7 +599,7 @@
                     class="btn ml-auto"
                     type="submit"
                   >
-                    Save
+                    Сохранить
                   </button>
                 </div>
                 <div>
@@ -636,7 +633,7 @@
                 />
               </svg>
             </div>
-            <p class="mt-4">Loading...</p>
+            <p class="mt-4">Загрузка...</p>
           </div>
         </main>
       </template>
@@ -690,9 +687,9 @@
                   @click="confirm()"
                   class="btn"
                 >
-                  Confirm
+                  Подтвердить
                 </button>
-                <button @click="close()" class="btn bg-red-500">Cancel</button>
+                <button @click="close()" class="btn bg-red-500">Отмена</button>
               </div>
             </div>
           </div>

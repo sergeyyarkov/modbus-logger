@@ -1,4 +1,5 @@
 import db from "#root/config/database.config.js";
+import cp from 'child_process'
 
 /**
  * Services
@@ -14,7 +15,7 @@ export const appController = {
      */
     async getConfig(req, res, next) {
         try {
-            const data = await appService.getConfig(db);
+            const data = await appService.getConfig();
             if (!data) return res.status(200).json({ config: null });
             return res.status(200).json({ config: data });
         } catch (error) {
@@ -30,7 +31,7 @@ export const appController = {
      */
     async updateConfig(req, res, next) {
         try {
-            const config = await appService.getConfig(db);
+            const config = await appService.getConfig();
             const payload = req.body;
         
             if (!config) await db.run(`INSERT INTO "app_config" (id) VALUES (?)`, [0]);
@@ -81,7 +82,7 @@ export const appController = {
      */
     async isConfigured(req, res, next) {
         try {
-            const config = await appService.getConfig(db);
+            const config = await appService.getConfig();
             if (!config) return res.status(200).json({ is_configured: false });
 
             for (const colPrefix of ['mb_tcp', 'mb_rtu']) {
@@ -98,5 +99,39 @@ export const appController = {
         } catch (error) {
             next(error);
         }
-    }
+    },
+
+    /**
+     * Application memory usage
+     * @param {import('express').Request} req 
+     * @param {import('express').Response} res 
+     * @param {import('express').NextFunction} next 
+     */
+    memoryUsage(req, res, next) {
+    	const memoryUsage = process.memoryUsage();
+			const bytesToMB = (bytes) => bytes / 10**6;
+			Object.keys(memoryUsage).forEach(k => (memoryUsage[k] = `${bytesToMB(memoryUsage[k])}MB`));
+    	return res.status(200).json({ data: memoryUsage });
+    },
+		
+		/**
+     * Ping
+     * @param {import('express').Request} req 
+     * @param {import('express').Response} res 
+     * @param {import('express').NextFunction} next 
+     */
+		ping(req, res, next) {
+			return res.status(200).send('pong');
+		},
+
+		/**
+     * Send info about latest commit hash
+     * @param {import('express').Request} req 
+     * @param {import('express').Response} res 
+     * @param {import('express').NextFunction} next 
+     */
+		commitHash(req, res, next) {
+			const hash = cp.execSync('git rev-parse HEAD').toString().trim();
+  		return res.status(200).json({ hash })
+		}
 }
