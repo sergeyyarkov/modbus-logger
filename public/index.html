@@ -70,7 +70,7 @@
                           class="flex flex-col space-y-2"
                         >
                           <div>
-                            <label :for="$id('id')"><span class="text-red-500">*</span>Slave ID:</label>
+                            <label :for="$id('id')"><span class="text-red-500">*</span>ID устройства:</label>
                             <input
                               x-model.number="data.id"
                               :id="$id('id')"
@@ -305,8 +305,8 @@
                               <!-- Remove display value -->
                               <button
                                 @click="$dispatch('dialog', { 
-                                  title: 'Remove display value', 
-                                  body: `Remove display value ${value.name}?`,
+                                  title: 'Удалить отображаемое значение', 
+                                  body: `Удалить ${value.name}?`,
                                   isOpen: true,
                                   onConfirm: async () => await removeDisplayValue(value.id)
                                 });"
