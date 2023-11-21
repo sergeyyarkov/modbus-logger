@@ -297,6 +297,7 @@ document.addEventListener("alpine:init", async () => {
               drawPoints: false,
               showRoller: false,
               ylabel: device.g_y_label,
+              rollPeriod: 5
             });
             g.resize(720, 300);
           }

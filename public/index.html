@@ -250,7 +250,7 @@
                       >Формат регистра: <span x-text="selectedDevice?.g_display_reg_format"></span
                     ></span>
                     <span class="italic text-sm"
-                      >Тип регистра: <span x-text="selectedDevice?.g_display_reg_type"></span
+                      >Тип регистра: <span x-text="$store.app.registersTypesMap[selectedDevice?.g_display_reg_type]"></span
                     ></span>
                   </div>
                   <hr class="my-3" />
