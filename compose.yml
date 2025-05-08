@@ -1,0 +1,7 @@
+services:
+  server:
+    container_name: mblogger-server
+    restart: always
+    build: .
+    ports:
+      - 9954:3000
